@@ -9,6 +9,8 @@ from app.core.logger import logger, setup_logger
 from app.core.security import get_request_id, audit_log
 from app.api.v1.routers.ingest import router as ingest_router
 from app.api.v1.routers.extract import router as extract_router
+from app.api.v1.routers.graph import router as graph_router
+from app.api.v1.routers.retrieve import router as retrieve_router 
 
 # Setup logger ngay khi import
 setup_logger(settings.LOG_LEVEL)
@@ -32,6 +34,8 @@ app = FastAPI(
 
 app.include_router(ingest_router)
 app.include_router(extract_router)
+app.include_router(graph_router)
+app.include_router(retrieve_router)
 
 # CORS lab
 app.add_middleware(

@@ -17,9 +17,9 @@ class IngestRequest(BaseModel):
     metadata: Optional[DocumentMetadata] = Field(default_factory=DocumentMetadata)
 
 class IngestResponse(BaseModel):
-    document_id: int
+    document_id: Optional[int] = None
     filename: str
-    chunks_count: int
+    chunks_count: int = 0
     status: str
-    message: str
-    ingestion_job_id: str
+    message: Optional[str] = None
+    ingestion_job_id: Optional[str] = None

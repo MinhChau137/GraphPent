@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # Ollama (sẽ dùng Phase 5)
     OLLAMA_BASE_URL: str = "http://ollama:11434"
-    OLLAMA_MODEL: str = "llama3.1:8b"
+    OLLAMA_MODEL: str = "llama3.2:3b"
     EMBEDDING_MODEL: str = "nomic-embed-text-v1.5"
 
     @field_validator("ALLOWED_TARGETS", mode="before")

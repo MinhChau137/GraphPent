@@ -1,0 +1,21 @@
+FROM nvidia/cuda:12.3.2-base-ubuntu22.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    zstd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Ollama
+RUN curl -fsSL https://ollama.ai/install.sh | sh
+
+# Set environment variables
+ENV OLLAMA_HOST=0.0.0.0:11434
+ENV OLLAMA_GPU_LAYERS=35
+
+# Expose port
+EXPOSE 11434
+
+# Start Ollama
+CMD ["ollama", "serve"]

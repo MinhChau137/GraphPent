@@ -3,6 +3,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, ForeignKey, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from app.config.settings import settings
 
@@ -16,6 +17,7 @@ class Document(Base):
     minio_path = Column(String, unique=True, nullable=False)
     doc_metadata = Column(JSON, default={})
     hash = Column(String, unique=True)
+    chunks_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -28,7 +30,7 @@ class Chunk(Base):
     chunk_index = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
     chunk_metadata = Column(JSON, default={})
-    weaviate_uuid = Column(String)  # sẽ lưu sau Phase 7
+    weaviate_uuid = Column(UUID(as_uuid=True), nullable=True)
     hash = Column(String, unique=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

@@ -1,5 +1,5 @@
 """LLM Adapter cho Ollama - sử dụng AsyncClient chính thức (fix TypeError)."""
-
+import uuid
 import ollama
 from ollama import AsyncClient
 import json
@@ -19,17 +19,24 @@ class LLMClient:
         """Gọi Ollama async với JSON mode + structured output."""
         system_prompt = """
 Bạn là chuyên gia bảo mật và penetration testing. 
-Hãy trích xuất entities và relations từ text sau theo ontology GraphRAG Pentest.
-Entities: Asset, Host, IP, Domain, URL, Service, Application, APIEndpoint, Vulnerability, CVE, CWE, TTP, Credential, Finding, Evidence, Remediation, Tool, Report.
-Relations: AFFECTS, HOSTED_ON, EXPOSES, HAS_VULN, LINKED_TO_CVE, CONFIRMED_BY, OBSERVED_IN, REMEDIATED_BY, REACHABLE_VIA, DEPENDS_ON, EXPLOITS, POST_EXPLOIT, GENERATED_BY, DESCRIBED_IN.
+Trích xuất entities và relations theo đúng ontology GraphRAG Pentest.
 
-Trả về JSON sạch theo format sau, không thêm bất kỳ text nào ngoài JSON:
+**QUY TẮC BẮT BUỘC**:
+- Mọi entity PHẢI có trường "name" (không được thiếu).
+- Nếu không có tên rõ ràng, dùng giá trị "value" hoặc "id" làm "name".
+- Không được dùng trường "value" thay cho "name".
+
+Entities có thể: Asset, Host, IP, Domain, URL, Service, Application, APIEndpoint, Vulnerability, CVE, CWE, TTP, Credential, Finding, Evidence, Remediation, Tool, Report, Project, Directory, ...
+
+Relations có thể: AFFECTS, HOSTED_ON, EXPOSES, HAS_VULN, LINKED_TO_CVE, CONFIRMED_BY, OBSERVED_IN, REMEDIATED_BY, REACHABLE_VIA, DEPENDS_ON, EXPLOITS, POST_EXPLOIT, GENERATED_BY, DESCRIBED_IN, ...
+
+Trả về **chỉ JSON sạch**, không thêm bất kỳ ký tự nào ngoài JSON:
 {
   "entities": [
-    {"id": "...", "type": "Host", "name": "...", "properties": {...}}
+    {"id": "...", "type": "...", "name": "...", "properties": {...}}
   ],
   "relations": [
-    {"id": "...", "type": "HAS_VULN", "source_id": "...", "target_id": "...", "properties": {...}}
+    {"id": "...", "type": "...", "source_id": "...", "target_id": "...", "properties": {...}}
   ]
 }
 """

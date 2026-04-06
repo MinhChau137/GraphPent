@@ -2,7 +2,7 @@
 
 from sqlalchemy import select, update
 from app.adapters.llm_client import LLMClient
-from app.adapters.postgres import Chunk, get_db
+from app.adapters.postgres import Chunk, AsyncSessionLocal
 from app.domain.schemas.extraction import ExtractionResult
 from app.core.logger import logger
 from app.core.security import audit_log
@@ -15,7 +15,7 @@ class ExtractionService:
         """Extract entities & relations từ một chunk."""
         await audit_log("extraction_start", {"chunk_id": chunk_id})
 
-        async with get_db() as session:
+        async with AsyncSessionLocal() as session:
             # Lấy chunk
             result = await session.execute(select(Chunk).where(Chunk.id == chunk_id))
             chunk = result.scalar_one_or_none()
@@ -38,6 +38,7 @@ class ExtractionService:
                     "entities": len(extraction_result.entities),
                     "relations": len(extraction_result.relations)
                 })
+                logger.info("LLM extraction successful", chunk_id=chunk_id, entities=len(extraction_result.entities), relations=len(extraction_result.relations))
                 logger.info("Extraction completed", chunk_id=chunk_id, entities=len(extraction_result.entities))
 
             return extraction_result

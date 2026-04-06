@@ -9,9 +9,12 @@ CREATE TABLE IF NOT EXISTS documents (
     minio_path TEXT UNIQUE NOT NULL,
     doc_metadata JSONB DEFAULT '{}',
     hash TEXT UNIQUE,
+    chunks_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS chunks_count INTEGER DEFAULT 0;
 
 -- 2. chunks
 CREATE TABLE IF NOT EXISTS chunks (

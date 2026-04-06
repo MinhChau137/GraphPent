@@ -1,6 +1,6 @@
-"""Pydantic schemas cho Entity & Relation extraction - Phase 5."""
+"""Pydantic schemas cho Entity & Relation - FIXED validation (Phase 5+6)."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
@@ -16,14 +16,28 @@ class Provenance(BaseModel):
 
 class Entity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str  # Asset, Host, IP, Domain, URL, Service, Application, APIEndpoint, Vulnerability, CVE, CWE, TTP, Credential, Finding, Evidence, Remediation, Tool, Report
-    name: str
+    type: str
+    name: str = Field(..., min_length=1)          # vẫn required
     properties: Dict[str, Any] = Field(default_factory=dict)
     provenance: Provenance = Field(default_factory=Provenance)
 
+    # Fallback thông minh nếu LLM quên field "name" hoặc "id"
+    @model_validator(mode='before')
+    @classmethod
+    def fallback_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            # Handle null id
+            if data.get("id") is None:
+                data["id"] = str(uuid.uuid4())
+            # Handle missing name
+            if not data.get("name"):
+                # Ưu tiên dùng "value" hoặc "id" làm name
+                data["name"] = data.get("value") or data.get("id") or f"unknown-{data.get('type', 'entity')}"
+        return data
+
 class Relation(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str  # AFFECTS, HOSTED_ON, EXPOSES, HAS_VULN, LINKED_TO_CVE, CONFIRMED_BY, OBSERVED_IN, REMEDIATED_BY, REACHABLE_VIA, DEPENDS_ON, EXPLOITS, POST_EXPLOIT, GENERATED_BY, DESCRIBED_IN
+    type: str
     source_id: str
     target_id: str
     properties: Dict[str, Any] = Field(default_factory=dict)
