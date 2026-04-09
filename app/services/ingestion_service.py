@@ -3,6 +3,7 @@
 import hashlib
 from sqlalchemy import select
 from app.adapters.minio_client import MinIOAdapter
+from app.adapters.weaviate_client import WeaviateAdapter
 from app.adapters.postgres import Document, Chunk, AsyncSessionLocal
 from app.utils.parsers import parse_document
 from app.utils.chunking import chunk_text
@@ -13,6 +14,7 @@ from uuid import uuid4
 class IngestionService:
     def __init__(self):
         self.minio = MinIOAdapter()
+        self.weaviate = WeaviateAdapter()
 
     async def ingest_document(self, file_bytes: bytes, filename: str, content_type: str, metadata: dict = None) -> dict:
         """Main ingestion pipeline."""
@@ -73,6 +75,24 @@ class IngestionService:
                     session.add(chunk_obj)
 
                 await session.commit()
+                
+                # Vector indexing for chunks
+                try:
+                    for chunk in chunks_data:
+                        chunk_obj = session.query(Chunk).filter_by(
+                            document_id=doc.id, 
+                            chunk_index=chunk["chunk_index"]
+                        ).first()
+                        if chunk_obj:
+                            await self.weaviate.upsert_chunk(
+                                chunk_id=chunk_obj.id,
+                                content=chunk_obj.content,
+                                metadata={"document_id": doc.id, "filename": filename}
+                            )
+                    logger.info("Vector indexing completed", chunks_indexed=len(chunks_data))
+                except Exception as e:
+                    logger.warning("Vector indexing failed, continuing", error=str(e))
+                
             except Exception:
                 await session.rollback()
                 raise

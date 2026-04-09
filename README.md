@@ -245,12 +245,12 @@ DOC_ID=$(curl -s -X POST http://localhost:8000/ingest/document \
   -F "file=@cve-data.json" | jq -r '.document_id')
 
 # 2. Extract entities
-curl -X POST http://localhost:8000/extract/chunk/$DOC_ID > extraction.json
+curl -X POST http://localhost:8000/extract/chunk/$DOC_ID > extraction_result.json
 
 # 3. Upsert vào đồ thị
 curl -X POST http://localhost:8000/graph/upsert \
   -H "Content-Type: application/json" \
-  -d @extraction.json
+  -d @extraction_result.json
 ```
 
 ### Database Queries
@@ -431,7 +431,7 @@ curl -X POST http://localhost:8000/retrieve/query \
 
 // View all entities
 MATCH (n) RETURN n LIMIT 20
-MATCH (n)-[r]->(m) RETURN n,r,m
+MATCH (n)-[r]->(m) RETURN n,r,m625
 
 // Find specific vulnerabilities
 MATCH (n) WHERE n.name CONTAINS "CVE" RETURN n

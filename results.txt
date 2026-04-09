@@ -1,0 +1,18 @@
+Admin@DESKTOP-3KLAHHP MINGW64 /d/ANM/GraphPent (main)
+$ curl -X POST http://localhost:8000/graph/upsert -H "Content-Type: application/json" -d '{"entities":[{"id":"cve-1999-0001","type":"CVE","name":"CVE-1999-0001","properties":{"description":"...","datePublished":"2000-02-04"},"provenance":{"source_chunk_id":null,"document_id":null,"extraction_timestamp":"2026-04-06T10:45:00.615021","confidence":0.85,"llm_model":"llama3.1:8b","tool_origin":"graphrag-extraction","sensitivity":"lab-internal"}},{"id":"prod-1","type":"Product","name":"BSD-derived TCP/IP","properties":{"vendor":"n/a"},"provenance":{"source_chunk_id":null,"document_id":null,"extraction_timestamp":"2026-04-06T10:45:00.615062","confidence":0.85,"llm_model":"llama3.1:8b","tool_origin":"graphrag-extraction","sensitivity":"lab-internal"}}],"relations":[{"id":"rel-1","type":"AFFECTS","source_id":"cve-1999-0001","target_id":"prod-1","properties":{},"provenance":{"source_chunk_id":null,"document_id":null,"extraction_timestamp":"2026-04-06T10:45:00.615112","confidence":0.85,"llm_model":"llama3.1:8b","tool_origin":"graphrag-extraction","sensitivity":"lab-internal"}}],"raw_llm_output":"{\n  \"entities\": [\n    {\"id\": \"cve-1999-0001\", \"type\": \"CVE\", \"name\": \"CVE-1999-0001\", \"properties\": {\"description\": \"...\", \"datePublished\": \"2000-02-04\"}},\n    {\"id\": \"prod-1\", \"type\": \"Product\", \"name\": \"BSD-derived TCP/IP\", \"properties\": {\"vendor\": \"n/a\"}}\n  ],\n  \"relations\": [\n    {\"id\": \"rel-1\", \"type\": \"AFFECTS\", \"source_id\": \"cve-1999-0001\", \"target_id\": \"prod-1\"}\n  ]\n}","error":null,"chunk_id":1}'
+{"status":"success","entities_upserted":2,"relations_upserted":1,"chunk_id":1}
+Admin@DESKTOP-3KLAHHP MINGW64 /d/ANM/GraphPent (main)
+$ curl -X POST http://localhost:8000/retrieve/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "CVE",
+    "limit": 10,
+    "alpha": 0.65
+  }'
+{"results":[{"id":"cve-1999-0001","content":"CVE: CVE-1999-0001","metadata":{"type":"CVE","provenance":null},"graph_score":0.8,"vector_score":0.0,"final_score":0.27999999999999997}],"total":1}
+Admin@DESKTOP-3KLAHHP MINGW64 /d/ANM/GraphPent (main)
+$ curl -X POST http://localhost:8000/workflow/run \
+  -H "Content-Type: application/json" \
+  -d '{"query": "find CVE"}'
+{"status":"success","final_answer":"Report for query: find CVE\nRetrieval: 0 results","retrieval_count":0,"steps_completed":"end"}
+Admin@DESKTOP-3KLAHHP MINGW64 /d/ANM/GraphPent (main)

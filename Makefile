@@ -25,3 +25,12 @@ logs-backend:
 
 health:
 	curl http://localhost:8000/health
+
+test:
+	pytest tests/ -v --asyncio-mode=auto
+
+test-coverage:
+	pytest tests/ --cov=app --cov-report=term-missing
+
+load-sample:
+	python scripts/fixtures/load_sample_data.py

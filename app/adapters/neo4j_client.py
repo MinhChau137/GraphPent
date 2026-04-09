@@ -35,18 +35,19 @@ class Neo4jAdapter:
             }
 
             cypher = f"""
-            MERGE (n:{label} {{name: $name}})
+            MERGE (n:{label} {{id: $id}})
             ON CREATE SET 
-                n.id = $props.id,
+                n.name = $name,
                 n += $props,
                 n.created_at = datetime()
             ON MATCH SET 
+                n.name = $name,
                 n += $props,
                 n.updated_at = datetime()
-            RETURN n.name as name
+            RETURN n.id as id
             """
 
-            await tx.run(cypher, name=entity.name, props=props)
+            await tx.run(cypher, id=entity.id, name=entity.name, props=props)
             stats["entities_upserted"] += 1
 
         # 2. Relations

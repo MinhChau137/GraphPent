@@ -59,6 +59,9 @@ services:
       WEAVIATE_DEFAULT_VECTORIZER: "none"
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      CLUSTER_HOSTNAME: "weaviate"
+      DISABLE_RECOVERY_ON_STARTUP: "true"
+      AUTHENTICATION_APIKEY_ENABLED: "false"
     volumes:
       - weaviate_data:/var/lib/weaviate
     ports:
@@ -109,10 +112,11 @@ services:
     gpus: all
 
     healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
       retries: 5
+      start_period: 60s
 
   backend:
     build:
@@ -128,7 +132,34 @@ services:
     env_file:
       - .env
     volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy  
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  batch-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: graphrag-batch-processor
+    profiles: ["batch"]  # Chỉ chạy khi gọi --profile batch
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2:3b
+    env_file:
+      - .env
+    volumes:
       - ./scripts:/scripts:ro
+      - ./data:/data:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -141,8 +172,10 @@ services:
       minio:
         condition: service_healthy
       ollama:
-        condition: service_healthy  
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        condition: service_healthy
+      backend:
+        condition: service_started  # Backend cần chạy để có services
+    command: python -m scripts.batch_full_pipeline_cve
 
 volumes:
   postgres_data:

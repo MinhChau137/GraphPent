@@ -7,7 +7,14 @@ from app.services.retriever_service import HybridRetrieverService
 
 router = APIRouter(prefix="/retrieve", tags=["Retriever"])
 
-retriever_service = HybridRetrieverService()
+# Lazy initialization
+_retriever_service = None
+
+def get_retriever_service():
+    global _retriever_service
+    if _retriever_service is None:
+        _retriever_service = HybridRetrieverService()
+    return _retriever_service
 
 class RetrieveRequest(BaseModel):
     query: str
@@ -22,7 +29,8 @@ class RetrieveResponse(BaseModel):
 async def hybrid_query(request: RetrieveRequest):
     """Hybrid retrieval (Vector + Graph + Fusion)."""
     try:
-        results = await retriever_service.hybrid_retrieve(
+        service = get_retriever_service()
+        results = await service.hybrid_retrieve(
             query=request.query,
             limit=request.limit,
             alpha=request.alpha

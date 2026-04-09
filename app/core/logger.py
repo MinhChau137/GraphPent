@@ -29,8 +29,8 @@ def setup_logger(log_level: str = "INFO"):
     structlog.configure(
         processors=processors,
         logger_factory=structlog.PrintLoggerFactory(),
-        wrapper_class=structlog.make_filtering_bound_logger(resolved_level),
-        cache_logger_on_first_use=True,
+        wrapper_class=structlog.BoundLogger,
+        cache_logger_on_first_use=False,
     )
 
     # Console handler đẹp cho development

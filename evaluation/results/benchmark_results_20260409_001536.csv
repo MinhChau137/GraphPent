@@ -1,0 +1,166 @@
+scenario_id,scenario_name,query,mode,run,latency_ms,precision_5,precision_10,recall_10,mrr,ndcg_10,relevant_count,retrieved_count
+1,Retrieval Accuracy,SQL injection,vector_only,1,353.83,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,vector_only,2,26.98,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,vector_only,3,31.41,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,vector_only,4,26.86,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,vector_only,5,32.42,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,graph_only,1,25.07,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,graph_only,2,26.16,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,graph_only,3,25.44,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,graph_only,4,27.34,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,graph_only,5,28.39,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,hybrid,1,26.3,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,hybrid,2,28.1,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,hybrid,3,33.7,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,hybrid,4,31.08,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,SQL injection,hybrid,5,26.46,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+1,Retrieval Accuracy,XSS,vector_only,1,27.14,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,vector_only,2,24.4,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,vector_only,3,26.22,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,vector_only,4,25.37,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,vector_only,5,26.11,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,graph_only,1,26.43,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,graph_only,2,34.03,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,graph_only,3,24.47,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,graph_only,4,24.88,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,graph_only,5,27.49,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,hybrid,1,27.08,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,hybrid,2,26.38,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,hybrid,3,25.44,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,hybrid,4,26.66,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,XSS,hybrid,5,31.07,0.4,0.2,1.0,1.0,1.0,2,3
+1,Retrieval Accuracy,IDOR,vector_only,1,27.99,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,vector_only,2,33.1,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,vector_only,3,25.79,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,vector_only,4,24.16,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,vector_only,5,27.83,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,graph_only,1,24.52,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,graph_only,2,29.49,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,graph_only,3,25.22,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,graph_only,4,28.21,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,graph_only,5,24.02,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,hybrid,1,31.15,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,hybrid,2,35.84,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,hybrid,3,30.16,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,hybrid,4,26.91,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,IDOR,hybrid,5,27.72,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,vector_only,1,26.43,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,vector_only,2,27.16,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,vector_only,3,26.64,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,vector_only,4,28.29,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,vector_only,5,26.6,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,graph_only,1,25.44,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,graph_only,2,31.22,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,graph_only,3,28.2,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,graph_only,4,24.59,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,graph_only,5,27.52,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,hybrid,1,26.57,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,hybrid,2,29.5,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,hybrid,3,28.31,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,hybrid,4,33.57,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,CSRF,hybrid,5,27.02,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication,vector_only,1,28.66,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,vector_only,2,35.53,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,vector_only,3,28.27,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,vector_only,4,26.68,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,vector_only,5,30.04,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,graph_only,1,32.22,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,graph_only,2,29.96,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,graph_only,3,30.85,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,graph_only,4,29.85,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,graph_only,5,32.41,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,hybrid,1,31.47,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,hybrid,2,34.89,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,hybrid,3,29.54,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,hybrid,4,27.41,0.2,0.1,1.0,1.0,1.0,1,1
+1,Retrieval Accuracy,authentication,hybrid,5,28.7,0.2,0.1,1.0,1.0,1.0,1,1
+2,CVE Linking Accuracy,SQL injection,vector_only,1,26.24,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,vector_only,2,30.83,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,vector_only,3,30.65,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,vector_only,4,30.4,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,vector_only,5,26.4,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,graph_only,1,43.05,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,graph_only,2,43.31,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,graph_only,3,31.38,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,graph_only,4,28.37,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,graph_only,5,26.95,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,hybrid,1,27.13,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,hybrid,2,26.0,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,hybrid,3,28.14,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,hybrid,4,26.77,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,SQL injection,hybrid,5,30.67,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+2,CVE Linking Accuracy,CWE,vector_only,1,36.13,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,vector_only,2,27.19,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,vector_only,3,26.29,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,vector_only,4,26.92,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,vector_only,5,26.07,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,graph_only,1,26.57,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,graph_only,2,27.17,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,graph_only,3,28.04,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,graph_only,4,35.44,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,graph_only,5,36.31,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,hybrid,1,27.39,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,hybrid,2,30.47,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,hybrid,3,31.86,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,hybrid,4,32.94,0.0,0.0,0.0,0.0,0.0,3,15
+2,CVE Linking Accuracy,CWE,hybrid,5,26.98,0.0,0.0,0.0,0.0,0.0,3,15
+3,Finding Correlation,SQL injection,vector_only,1,29.94,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,vector_only,2,40.29,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,vector_only,3,30.96,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,vector_only,4,52.32,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,vector_only,5,69.63,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,graph_only,1,64.5,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,graph_only,2,54.59,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,graph_only,3,32.8,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,graph_only,4,33.39,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,graph_only,5,42.97,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,hybrid,1,49.86,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,hybrid,2,33.79,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,hybrid,3,30.91,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,hybrid,4,36.5,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,SQL injection,hybrid,5,35.09,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+3,Finding Correlation,XSS,vector_only,1,28.69,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,vector_only,2,28.86,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,vector_only,3,30.29,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,vector_only,4,28.7,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,vector_only,5,41.68,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,graph_only,1,49.01,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,graph_only,2,43.23,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,graph_only,3,44.15,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,graph_only,4,49.8,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,graph_only,5,54.18,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,hybrid,1,43.07,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,hybrid,2,43.28,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,hybrid,3,45.86,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,hybrid,4,30.07,0.4,0.2,1.0,1.0,1.0,2,3
+3,Finding Correlation,XSS,hybrid,5,35.4,0.4,0.2,1.0,1.0,1.0,2,3
+4,Multi-hop Reasoning,authentication,vector_only,1,41.43,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,vector_only,2,39.26,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,vector_only,3,37.34,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,vector_only,4,40.87,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,vector_only,5,40.82,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,graph_only,1,34.0,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,graph_only,2,32.03,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,graph_only,3,33.57,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,graph_only,4,27.59,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,graph_only,5,30.08,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,hybrid,1,24.42,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,hybrid,2,28.26,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,hybrid,3,34.91,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,hybrid,4,32.31,0.2,0.1,1.0,1.0,1.0,1,1
+4,Multi-hop Reasoning,authentication,hybrid,5,36.89,0.2,0.1,1.0,1.0,1.0,1,1
+5,Remediation Quality,SQL injection,vector_only,1,35.85,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,vector_only,2,37.27,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,vector_only,3,34.77,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,vector_only,4,39.2,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,vector_only,5,37.19,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,graph_only,1,31.14,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,graph_only,2,31.44,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,graph_only,3,29.3,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,graph_only,4,34.07,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,graph_only,5,28.58,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,hybrid,1,26.86,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,hybrid,2,26.29,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,hybrid,3,28.84,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,hybrid,4,29.0,0.4,0.2,1.0,1.0,0.9197207891481876,2,5
+5,Remediation Quality,SQL injection,hybrid,5,24.48,0.4,0.2,1.0,1.0,0.9197207891481876,2,5

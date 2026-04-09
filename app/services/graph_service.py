@@ -31,13 +31,12 @@ class GraphService:
             return {
                 "status": "success",
                 "entities_upserted": stats["entities_upserted"],
-                "relations_upserted": stats["relations_created"],
-                "chunk_id": extraction_result.chunk_id
+                "relations_upserted": stats["relations_created"]
             }
 
         except Exception as e:
-            logger.error("Graph upsert failed", error=str(e), error_type=type(e).__name__, chunk_id=extraction_result.chunk_id)
-            await audit_log("graph_upsert_failed", {"error": str(e), "error_type": type(e).__name__})
+            logger.error("Graph upsert failed", error=str(e), error_type=type(e).__name__)
+            await audit_log("graph_upsert_failed", {"error": str(e), "error_type": type(e).__name__, "chunk_id": extraction_result.chunk_id})
             return {"status": "failed", "error": str(e)}
 
     async def close(self):

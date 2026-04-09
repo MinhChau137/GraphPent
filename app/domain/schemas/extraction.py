@@ -16,23 +16,28 @@ class Provenance(BaseModel):
 
 class Entity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str
-    name: str = Field(..., min_length=1)          # vẫn required
+    type: str                    # Có thể là: Weakness, CWE, Category, Mitigation, Consequence, Vulnerability, CVE, ...
+    name: str = Field(..., min_length=1)
     properties: Dict[str, Any] = Field(default_factory=dict)
     provenance: Provenance = Field(default_factory=Provenance)
 
-    # Fallback thông minh nếu LLM quên field "name" hoặc "id"
     @model_validator(mode='before')
     @classmethod
-    def fallback_fields(cls, data: Any) -> Any:
+    def fallback_id_and_name(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            # Handle null id
-            if data.get("id") is None:
+            # Fix id
+            if data.get("id") is None or str(data.get("id")).strip() == "":
                 data["id"] = str(uuid.uuid4())
-            # Handle missing name
-            if not data.get("name"):
-                # Ưu tiên dùng "value" hoặc "id" làm name
-                data["name"] = data.get("value") or data.get("id") or f"unknown-{data.get('type', 'entity')}"
+            
+            # Fix name cho CWE
+            if not data.get("name") or str(data.get("name")).strip() == "":
+                data["name"] = (
+                    data.get("value")
+                    or data.get("Name")           # từ XML CWE
+                    or data.get("cweId")
+                    or data.get("id")
+                    or f"unknown-{data.get('type', 'entity')}"
+                )
         return data
 
 class Relation(BaseModel):

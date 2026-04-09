@@ -1,0 +1,166 @@
+scenario_id,scenario_name,query,mode,run,latency_ms,precision_5,precision_10,recall_10,mrr,ndcg_10,relevant_count,retrieved_count
+1,Retrieval Accuracy,SQL injection in DVWA,vector_only,1,97.63,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,vector_only,2,34.56,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,vector_only,3,37.26,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,vector_only,4,32.36,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,vector_only,5,41.1,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,graph_only,1,28.32,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,graph_only,2,32.68,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,graph_only,3,32.79,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,graph_only,4,39.51,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,graph_only,5,27.03,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,hybrid,1,31.83,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,hybrid,2,27.41,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,hybrid,3,43.7,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,hybrid,4,22.09,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,SQL injection in DVWA,hybrid,5,44.02,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,vector_only,1,29.35,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,vector_only,2,24.94,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,vector_only,3,22.84,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,vector_only,4,17.46,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,vector_only,5,18.16,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,graph_only,1,22.72,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,graph_only,2,40.98,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,graph_only,3,27.33,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,graph_only,4,21.49,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,graph_only,5,38.51,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,hybrid,1,32.1,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,hybrid,2,23.56,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,hybrid,3,24.79,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,hybrid,4,36.34,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,XSS in DVWA,hybrid,5,39.95,0.0,0.0,0.0,0.0,0.0,2,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,vector_only,1,43.82,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,vector_only,2,44.35,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,vector_only,3,29.18,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,vector_only,4,21.54,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,vector_only,5,17.5,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,graph_only,1,21.63,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,graph_only,2,20.65,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,graph_only,3,25.18,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,graph_only,4,28.97,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,graph_only,5,20.82,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,hybrid,1,21.98,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,hybrid,2,32.67,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,hybrid,3,27.36,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,hybrid,4,27.37,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,IDOR vulnerability in Juice Shop,hybrid,5,18.45,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,vector_only,1,23.42,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,vector_only,2,20.43,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,vector_only,3,21.49,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,vector_only,4,32.13,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,vector_only,5,19.13,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,graph_only,1,26.67,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,graph_only,2,41.69,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,graph_only,3,23.32,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,graph_only,4,28.02,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,graph_only,5,108.25,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,hybrid,1,24.92,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,hybrid,2,17.03,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,hybrid,3,16.46,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,hybrid,4,16.73,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,CSRF in WebGoat,hybrid,5,19.85,0.0,0.0,0.0,0.0,0.0,0,0
+1,Retrieval Accuracy,authentication bypass in DVWA,vector_only,1,18.6,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,vector_only,2,28.5,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,vector_only,3,24.23,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,vector_only,4,17.94,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,vector_only,5,21.13,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,graph_only,1,27.12,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,graph_only,2,25.99,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,graph_only,3,17.7,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,graph_only,4,29.62,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,graph_only,5,24.35,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,hybrid,1,19.34,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,hybrid,2,25.24,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,hybrid,3,21.3,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,hybrid,4,17.34,0.0,0.0,0.0,0.0,0.0,1,0
+1,Retrieval Accuracy,authentication bypass in DVWA,hybrid,5,18.18,0.0,0.0,0.0,0.0,0.0,1,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,vector_only,1,25.46,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,vector_only,2,23.62,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,vector_only,3,17.62,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,vector_only,4,26.1,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,vector_only,5,21.39,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,graph_only,1,19.98,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,graph_only,2,34.7,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,graph_only,3,21.03,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,graph_only,4,16.64,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,graph_only,5,19.04,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,hybrid,1,21.01,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,hybrid,2,19.67,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,hybrid,3,22.41,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,hybrid,4,26.0,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,vulnerabilities related to SQL injection,hybrid,5,16.49,0.0,0.0,0.0,0.0,0.0,2,0
+2,CVE Linking Accuracy,CWE-89 related issues,vector_only,1,17.41,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,vector_only,2,33.53,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,vector_only,3,16.98,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,vector_only,4,23.97,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,vector_only,5,18.1,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,graph_only,1,20.26,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,graph_only,2,17.44,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,graph_only,3,21.64,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,graph_only,4,16.85,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,graph_only,5,22.17,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,hybrid,1,19.17,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,hybrid,2,25.69,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,hybrid,3,17.67,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,hybrid,4,20.37,0.0,0.0,0.0,0.0,0.0,0,0
+2,CVE Linking Accuracy,CWE-89 related issues,hybrid,5,16.56,0.0,0.0,0.0,0.0,0.0,0,0
+3,Finding Correlation,Nuclei finding SQL injection,vector_only,1,20.23,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,vector_only,2,25.4,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,vector_only,3,20.84,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,vector_only,4,20.01,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,vector_only,5,18.92,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,graph_only,1,23.68,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,graph_only,2,29.72,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,graph_only,3,17.4,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,graph_only,4,17.26,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,graph_only,5,28.33,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,hybrid,1,18.45,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,hybrid,2,19.03,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,hybrid,3,18.55,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,hybrid,4,19.08,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,Nuclei finding SQL injection,hybrid,5,22.32,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,vector_only,1,16.56,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,vector_only,2,30.62,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,vector_only,3,15.2,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,vector_only,4,14.81,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,vector_only,5,15.25,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,graph_only,1,17.58,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,graph_only,2,17.57,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,graph_only,3,16.45,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,graph_only,4,15.94,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,graph_only,5,17.37,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,hybrid,1,17.04,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,hybrid,2,25.94,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,hybrid,3,16.3,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,hybrid,4,15.9,0.0,0.0,0.0,0.0,0.0,2,0
+3,Finding Correlation,ZAP alert XSS,hybrid,5,16.78,0.0,0.0,0.0,0.0,0.0,2,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,vector_only,1,18.32,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,vector_only,2,16.72,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,vector_only,3,17.33,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,vector_only,4,17.3,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,vector_only,5,18.93,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,graph_only,1,18.84,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,graph_only,2,27.54,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,graph_only,3,21.74,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,graph_only,4,20.35,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,graph_only,5,16.86,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,hybrid,1,17.45,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,hybrid,2,17.18,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,hybrid,3,17.1,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,hybrid,4,16.06,0.0,0.0,0.0,0.0,0.0,1,0
+4,Multi-hop Reasoning,attack path from login to database in DVWA,hybrid,5,21.44,0.0,0.0,0.0,0.0,0.0,1,0
+5,Remediation Quality,how to fix SQL injection in DVWA,vector_only,1,17.69,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,vector_only,2,26.23,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,vector_only,3,18.11,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,vector_only,4,18.7,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,vector_only,5,17.67,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,graph_only,1,18.38,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,graph_only,2,18.29,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,graph_only,3,17.5,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,graph_only,4,20.91,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,graph_only,5,18.0,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,hybrid,1,16.92,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,hybrid,2,26.17,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,hybrid,3,17.78,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,hybrid,4,16.89,0.0,0.0,0.0,0.0,0.0,2,0
+5,Remediation Quality,how to fix SQL injection in DVWA,hybrid,5,17.66,0.0,0.0,0.0,0.0,0.0,2,0

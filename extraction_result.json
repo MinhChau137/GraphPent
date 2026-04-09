@@ -1,1 +1,525 @@
-{"entities":[{"id":"cna","type":"Container","name":"cna","properties":{"affected":[{"product":"n/a","vendor":"n/a","versions":[{"status":"affected"}]}]},"provenance":{"source_chunk_id":null,"document_id":null,"extraction_timestamp":"2026-04-05T04:17:35.927649","confidence":0.85,"llm_model":"llama3.1:8b","tool_origin":"graphrag-extraction","sensitivity":"lab-internal"}}],"relations":[{"id":"...","type":"AFFECTED_BY","source_id":"cna","target_id":"...","properties":{},"provenance":{"source_chunk_id":null,"document_id":null,"extraction_timestamp":"2026-04-05T04:17:35.927664","confidence":0.85,"llm_model":"llama3.1:8b","tool_origin":"graphrag-extraction","sensitivity":"lab-internal"}}],"raw_llm_output":"{\n  \"entities\": [\n    {\n      \"id\": \"cna\",\n      \"type\": \"Container\",\n      \"name\": \"cna\",\n      \"properties\": {\n        \"affected\": [\n          {\n            \"product\": \"n/a\",\n            \"vendor\": \"n/a\",\n            \"versions\": [\n              {\n                \"status\": \"affected\"\n              }\n            ]\n          }\n        ]\n      }\n    }\n  ],\n  \"relations\": [\n    {\n      \"id\": \"...\",\n      \"type\": \"AFFECTED_BY\",\n      \"source_id\": \"cna\",\n      \"target_id\": \"...\",\n      \"properties\": {}\n    }\n  ]\n}","error":null,"chunk_id":1}
+{
+    "entities": [
+        {
+            "id": "cwe-1004",
+            "type": "Weakness",
+            "name": "Sensitive Cookie Without 'HttpOnly' Flag",
+            "properties": {
+                "Abstraction": "Variant",
+                "Structure": "Simple",
+                "Status": "Incomplete"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.417839",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "mitigation-cwe-1004-1",
+            "type": "Mitigation",
+            "name": "Leverage the HttpOnly flag when setting a sensitive cookie in a response",
+            "properties": {
+                "Phase": "Implementation",
+                "Description": "Leverage the HttpOnly flag when setting a sensitive cookie in a response.",
+                "Effectiveness": "High",
+                "Effectiveness_Notes": "While this mitigation is effective for protecting cookies from a browser's own scripting engine, third-party components or plugins may have their own engines that allow access to cookies. Attackers might also be able to use XMLHTTPResponse to read the headers directly and obtain the cookie."
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418770",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "consequence-cwe-1004-1",
+            "type": "Consequence",
+            "name": "Read Application Data",
+            "properties": {
+                "Scope": "Confidentiality",
+                "Impact": "Read Application Data",
+                "Note": "If the HttpOnly flag is not set, then sensitive information stored in the cookie may be exposed to unintended parties."
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418779",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "consequence-cwe-1004-2",
+            "type": "Consequence",
+            "name": "Gain Privileges or Assume Identity",
+            "properties": {
+                "Scope": "Integrity",
+                "Impact": "Gain Privileges or Assume Identity",
+                "Note": "If the cookie in question is an authentication cookie, then not setting the HttpOnly flag may allow an adversary to steal authentication data (e.g., a session ID) and assume the identity of the user."
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418821",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "detection-cwe-1004-1",
+            "type": "DetectionMethod",
+            "name": "Automated Static Analysis",
+            "properties": {
+                "Detection_Method_ID": "DM-14",
+                "Method": "Automated static analysis, commonly referred to as Static Application Security Testing (SAST), can find some instances of this weakness by analyzing source code (or binary/compiled code) without having to execute it.",
+                "Effectiveness": "High"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418910",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "reference-cwe-1004-1",
+            "type": "Reference",
+            "name": "CVE-2024-47833",
+            "properties": {
+                "External_Reference_ID": "REF-2"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418916",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "reference-cwe-1004-2",
+            "type": "Reference",
+            "name": "CVE-2022-24045",
+            "properties": {
+                "External_Reference_ID": "REF-3"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418921",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "reference-cwe-1004-3",
+            "type": "Reference",
+            "name": "CVE-2014-3852",
+            "properties": {
+                "External_Reference_ID": "REF-4"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418946",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "reference-cwe-1004-4",
+            "type": "Reference",
+            "name": "CVE-2015-4138",
+            "properties": {
+                "External_Reference_ID": "REF-5"
+            },
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.418986",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        }
+    ],
+    "relations": [
+        {
+            "id": "child_of-cwe-1004-1",
+            "type": "CHILD_OF",
+            "source_id": "cwe-1004",
+            "target_id": "cwe-732",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419109",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_mitigation-cwe-1004-1",
+            "type": "HAS_MITIGATION",
+            "source_id": "cwe-1004",
+            "target_id": "mitigation-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419181",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_consequence-cwe-1004-1",
+            "type": "HAS_CONSEQUENCE",
+            "source_id": "cwe-1004",
+            "target_id": "consequence-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419277",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_consequence-cwe-1004-2",
+            "type": "HAS_CONSEQUENCE",
+            "source_id": "cwe-1004",
+            "target_id": "consequence-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419316",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_detection-cwe-1004-1",
+            "type": "HAS_DETECTION",
+            "source_id": "cwe-1004",
+            "target_id": "detection-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419342",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_detection-cwe-1004-2",
+            "type": "HAS_DETECTION",
+            "source_id": "cwe-1004",
+            "target_id": "detection-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419347",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_platform-cwe-1004-1",
+            "type": "HAS_PLATFORM",
+            "source_id": "cwe-1004",
+            "target_id": "platform-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419351",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_platform-cwe-1004-2",
+            "type": "HAS_PLATFORM",
+            "source_id": "cwe-1004",
+            "target_id": "platform-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419374",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_platform-cwe-1004-3",
+            "type": "HAS_PLATFORM",
+            "source_id": "cwe-1004",
+            "target_id": "platform-cwe-1004-3",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419470",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_phase-cwe-1004-1",
+            "type": "HAS_PHASE",
+            "source_id": "cwe-1004",
+            "target_id": "phase-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419512",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_reference-cwe-1004-1",
+            "type": "HAS_REFERENCE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.419601",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_reference-cwe-1004-2",
+            "type": "HAS_REFERENCE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429149",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_reference-cwe-1004-3",
+            "type": "HAS_REFERENCE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-3",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429155",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_reference-cwe-1004-4",
+            "type": "HAS_REFERENCE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-4",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429193",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_example-cwe-1004-1",
+            "type": "HAS_EXAMPLE",
+            "source_id": "cwe-1004",
+            "target_id": "example-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429197",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_example-cwe-1004-2",
+            "type": "HAS_EXAMPLE",
+            "source_id": "cwe-1004",
+            "target_id": "example-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429200",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_example-cwe-1004-3",
+            "type": "HAS_EXAMPLE",
+            "source_id": "cwe-1004",
+            "target_id": "example-cwe-1004-3",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429203",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_example-cwe-1004-4",
+            "type": "HAS_EXAMPLE",
+            "source_id": "cwe-1004",
+            "target_id": "example-cwe-1004-4",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429206",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_cve-cwe-1004-1",
+            "type": "LINKED_TO_CVE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-1",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429231",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_cve-cwe-1004-2",
+            "type": "LINKED_TO_CVE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-2",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429235",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_cve-cwe-1004-3",
+            "type": "LINKED_TO_CVE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-3",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429238",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        },
+        {
+            "id": "has_cve-cwe-1004-4",
+            "type": "LINKED_TO_CVE",
+            "source_id": "cwe-1004",
+            "target_id": "reference-cwe-1004-4",
+            "properties": {},
+            "provenance": {
+                "source_chunk_id": null,
+                "document_id": null,
+                "extraction_timestamp": "2026-04-07T19:14:34.429241",
+                "confidence": 0.95,
+                "llm_model": "llama3.1:8b",
+                "tool_origin": "graphrag-extraction",
+                "sensitivity": "lab-internal"
+            }
+        }
+    ],
+    "raw_llm_output": "{\n  \"entities\": [\n    {\n      \"id\": \"cwe-1004\",\n      \"type\": \"Weakness\",\n      \"name\": \"Sensitive Cookie Without 'HttpOnly' Flag\",\n      \"properties\": {\n        \"Abstraction\": \"Variant\",\n        \"Structure\": \"Simple\",\n        \"Status\": \"Incomplete\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Weakness/Description\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"1004\"\n      }\n    },\n    {\n      \"id\": \"mitigation-cwe-1004-1\",\n      \"type\": \"Mitigation\",\n      \"name\": \"Leverage the HttpOnly flag when setting a sensitive cookie in a response\",\n      \"properties\": {\n        \"Phase\": \"Implementation\",\n        \"Description\": \"Leverage the HttpOnly flag when setting a sensitive cookie in a response.\",\n        \"Effectiveness\": \"High\",\n        \"Effectiveness_Notes\": \"While this mitigation is effective for protecting cookies from a browser's own scripting engine, third-party components or plugins may have their own engines that allow access to cookies. Attackers might also be able to use XMLHTTPResponse to read the headers directly and obtain the cookie.\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Potential_Mitigations/Mitigation/Description\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Mitigation-1\"\n      }\n    },\n    {\n      \"id\": \"consequence-cwe-1004-1\",\n      \"type\": \"Consequence\",\n      \"name\": \"Read Application Data\",\n      \"properties\": {\n        \"Scope\": \"Confidentiality\",\n        \"Impact\": \"Read Application Data\",\n        \"Note\": \"If the HttpOnly flag is not set, then sensitive information stored in the cookie may be exposed to unintended parties.\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Common_Consequences/Consequence/Impact\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Consequence-1\"\n      }\n    },\n    {\n      \"id\": \"consequence-cwe-1004-2\",\n      \"type\": \"Consequence\",\n      \"name\": \"Gain Privileges or Assume Identity\",\n      \"properties\": {\n        \"Scope\": \"Integrity\",\n        \"Impact\": \"Gain Privileges or Assume Identity\",\n        \"Note\": \"If the cookie in question is an authentication cookie, then not setting the HttpOnly flag may allow an adversary to steal authentication data (e.g., a session ID) and assume the identity of the user.\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Common_Consequences/Consequence/Impact\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Consequence-2\"\n      }\n    },\n    {\n      \"id\": \"detection-cwe-1004-1\",\n      \"type\": \"DetectionMethod\",\n      \"name\": \"Automated Static Analysis\",\n      \"properties\": {\n        \"Detection_Method_ID\": \"DM-14\",\n        \"Method\": \"Automated static analysis, commonly referred to as Static Application Security Testing (SAST), can find some instances of this weakness by analyzing source code (or binary/compiled code) without having to execute it.\",\n        \"Effectiveness\": \"High\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Detection_Methods/Detection_Method/Detection_Method_Description\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Detection-1\"\n      }\n    },\n    {\n      \"id\": \"reference-cwe-1004-1\",\n      \"type\": \"Reference\",\n      \"name\": \"CVE-2024-47833\",\n      \"properties\": {\n        \"External_Reference_ID\": \"REF-2\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-1\"\n      }\n    },\n    {\n      \"id\": \"reference-cwe-1004-2\",\n      \"type\": \"Reference\",\n      \"name\": \"CVE-2022-24045\",\n      \"properties\": {\n        \"External_Reference_ID\": \"REF-3\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-2\"\n      }\n    },\n    {\n      \"id\": \"reference-cwe-1004-3\",\n      \"type\": \"Reference\",\n      \"name\": \"CVE-2014-3852\",\n      \"properties\": {\n        \"External_Reference_ID\": \"REF-4\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-3\"\n      }\n    },\n    {\n      \"id\": \"reference-cwe-1004-4\",\n      \"type\": \"Reference\",\n      \"name\": \"CVE-2015-4138\",\n      \"properties\": {\n        \"External_Reference_ID\": \"REF-5\"\n      },\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-4\"\n      }\n    }\n  ],\n  \"relations\": [\n    {\n      \"id\": \"child_of-cwe-1004-1\",\n      \"type\": \"CHILD_OF\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"cwe-732\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Related_Weaknesses/Related_Weakness/Nature\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"ChildOf-1\"\n      }\n    },\n    {\n      \"id\": \"has_mitigation-cwe-1004-1\",\n      \"type\": \"HAS_MITIGATION\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"mitigation-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Potential_Mitigations/Mitigation/Weakness_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Mitigation-1\"\n      }\n    },\n    {\n      \"id\": \"has_consequence-cwe-1004-1\",\n      \"type\": \"HAS_CONSEQUENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"consequence-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Common_Consequences/Consequence/Weakness_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Consequence-1\"\n      }\n    },\n    {\n      \"id\": \"has_consequence-cwe-1004-2\",\n      \"type\": \"HAS_CONSEQUENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"consequence-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Common_Consequences/Consequence/Weakness_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Consequence-2\"\n      }\n    },\n    {\n      \"id\": \"has_detection-cwe-1004-1\",\n      \"type\": \"HAS_DETECTION\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"detection-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Detection_Methods/Detection_Method/Detection_Method_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Detection-1\"\n      }\n    },\n    {\n      \"id\": \"has_detection-cwe-1004-2\",\n      \"type\": \"HAS_DETECTION\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"detection-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Detection_Methods/Detection_Method/Detection_Method_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Detection-2\"\n      }\n    },\n    {\n      \"id\": \"has_platform-cwe-1004-1\",\n      \"type\": \"HAS_PLATFORM\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"platform-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Applicable_Platforms/Applicable_Platform/Language/Class\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Platform-1\"\n      }\n    },\n    {\n      \"id\": \"has_platform-cwe-1004-2\",\n      \"type\": \"HAS_PLATFORM\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"platform-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Applicable_Platforms/Applicable_Platform/Technology/Name\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Platform-2\"\n      }\n    },\n    {\n      \"id\": \"has_platform-cwe-1004-3\",\n      \"type\": \"HAS_PLATFORM\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"platform-cwe-1004-3\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Applicable_Platforms/Applicable_Platform/Technology/Name\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Platform-3\"\n      }\n    },\n    {\n      \"id\": \"has_phase-cwe-1004-1\",\n      \"type\": \"HAS_PHASE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"phase-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Modes_Of_Introduction/Introduction/Phase\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Phase-1\"\n      }\n    },\n    {\n      \"id\": \"has_reference-cwe-1004-1\",\n      \"type\": \"HAS_REFERENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"References/Reference/External_Reference_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-1\"\n      }\n    },\n    {\n      \"id\": \"has_reference-cwe-1004-2\",\n      \"type\": \"HAS_REFERENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"References/Reference/External_Reference_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-2\"\n      }\n    },\n    {\n      \"id\": \"has_reference-cwe-1004-3\",\n      \"type\": \"HAS_REFERENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-3\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"References/Reference/External_Reference_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-3\"\n      }\n    },\n    {\n      \"id\": \"has_reference-cwe-1004-4\",\n      \"type\": \"HAS_REFERENCE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-4\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"References/Reference/External_Reference_ID\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Reference-4\"\n      }\n    },\n    {\n      \"id\": \"has_example-cwe-1004-1\",\n      \"type\": \"HAS_EXAMPLE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"example-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Demonstrative_Examples/Demonstrative_Example/Intro_Text\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Example-1\"\n      }\n    },\n    {\n      \"id\": \"has_example-cwe-1004-2\",\n      \"type\": \"HAS_EXAMPLE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"example-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Demonstrative_Examples/Demonstrative_Example/Intro_Text\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Example-2\"\n      }\n    },\n    {\n      \"id\": \"has_example-cwe-1004-3\",\n      \"type\": \"HAS_EXAMPLE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"example-cwe-1004-3\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Demonstrative_Examples/Demonstrative_Example/Intro_Text\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Example-3\"\n      }\n    },\n    {\n      \"id\": \"has_example-cwe-1004-4\",\n      \"type\": \"HAS_EXAMPLE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"example-cwe-1004-4\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Demonstrative_Examples/Demonstrative_Example/Intro_Text\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"Example-4\"\n      }\n    },\n    {\n      \"id\": \"has_cve-cwe-1004-1\",\n      \"type\": \"LINKED_TO_CVE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-1\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference/CVE\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"CVE-1\"\n      }\n    },\n    {\n      \"id\": \"has_cve-cwe-1004-2\",\n      \"type\": \"LINKED_TO_CVE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-2\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference/CVE\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"CVE-2\"\n      }\n    },\n    {\n      \"id\": \"has_cve-cwe-1004-3\",\n      \"type\": \"LINKED_TO_CVE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-3\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference/CVE\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"CVE-3\"\n      }\n    },\n    {\n      \"id\": \"has_cve-cwe-1004-4\",\n      \"type\": \"LINKED_TO_CVE\",\n      \"source_id\": \"cwe-1004\",\n      \"target_id\": \"reference-cwe-1004-4\",\n      \"properties\": {},\n      \"provenance\": {\n        \"source_type\": \"cwe_xml\",\n        \"source_field\": \"Observed_Examples/Observed_Example/Reference/CVE\",\n        \"confidence\": 0.95,\n        \"xml_element_id\": \"CVE-4\"\n      }\n    }\n  ]\n}",
+    "error": null,
+    "chunk_id": 1
+}
