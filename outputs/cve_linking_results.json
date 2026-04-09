@@ -1,0 +1,92 @@
+{
+  "vector": {
+    "per_query": [
+      {
+        "query_id": "cve1",
+        "scenario": "cve_linking",
+        "query": "vulnerabilities related to SQL injection",
+        "mode": "vector",
+        "alpha": 1.0,
+        "pred_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "truth_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "vector",
+      "alpha": 1.0,
+      "num_queries": 1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "graph": {
+    "per_query": [
+      {
+        "query_id": "cve1",
+        "scenario": "cve_linking",
+        "query": "vulnerabilities related to SQL injection",
+        "mode": "graph",
+        "alpha": 0.0,
+        "pred_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "truth_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "graph",
+      "alpha": 0.0,
+      "num_queries": 1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "hybrid": {
+    "per_query": [
+      {
+        "query_id": "cve1",
+        "scenario": "cve_linking",
+        "query": "vulnerabilities related to SQL injection",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "pred_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "truth_cves": [
+          "CVE-2022-22965",
+          "CVE-2023-50164"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "hybrid",
+      "alpha": 0.7,
+      "num_queries": 1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}

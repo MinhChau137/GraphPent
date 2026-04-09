@@ -1,0 +1,104 @@
+{
+  "retrieval_queries": [
+    {
+      "query_id": "q1",
+      "scenario": "retrieval_accuracy",
+      "query": "SQL injection in DVWA login form",
+      "relevant_ids": ["chunk_sqli_01", "chunk_sqli_02", "node_cwe_89"],
+      "relevant_cwes": ["CWE-89"],
+      "relevant_cves": []
+    },
+    {
+      "query_id": "q2",
+      "scenario": "retrieval_accuracy",
+      "query": "Reflected XSS in search parameter",
+      "relevant_ids": ["chunk_xss_01", "node_cwe_79"],
+      "relevant_cwes": ["CWE-79"],
+      "relevant_cves": []
+    },
+    {
+      "query_id": "q3",
+      "scenario": "retrieval_accuracy",
+      "query": "IDOR access user profile by changing id",
+      "relevant_ids": ["chunk_idor_01", "node_cwe_639"],
+      "relevant_cwes": ["CWE-639"],
+      "relevant_cves": []
+    },
+    {
+      "query_id": "q4",
+      "scenario": "retrieval_accuracy",
+      "query": "CSRF transfer money request",
+      "relevant_ids": ["chunk_csrf_01", "node_cwe_352"],
+      "relevant_cwes": ["CWE-352"],
+      "relevant_cves": []
+    }
+  ],
+  "cve_queries": [
+    {
+      "query_id": "cve1",
+      "scenario": "cve_linking",
+      "query": "vulnerabilities related to SQL injection",
+      "relevant_ids": ["node_cwe_89"],
+      "relevant_cwes": ["CWE-89"],
+      "relevant_cves": ["CVE-2023-50164", "CVE-2022-22965"]
+    }
+  ],
+  "finding_cases": [
+    {
+      "case_id": "f1",
+      "scenario": "finding_correlation",
+      "finding_text": "SQL injection detected on /login.php parameter username",
+      "predicted_candidates_should_match": ["CWE-89"],
+      "relevant_cves": ["CVE-2023-50164"],
+      "is_true_positive": true
+    },
+    {
+      "case_id": "f2",
+      "scenario": "finding_correlation",
+      "finding_text": "Possible XSS on search parameter q",
+      "predicted_candidates_should_match": ["CWE-79"],
+      "relevant_cves": [],
+      "is_true_positive": true
+    },
+    {
+      "case_id": "f3",
+      "scenario": "finding_correlation",
+      "finding_text": "Suspicious open redirect on next parameter",
+      "predicted_candidates_should_match": ["CWE-601"],
+      "relevant_cves": [],
+      "is_true_positive": false
+    }
+  ],
+  "multi_hop_queries": [
+    {
+      "query_id": "mh1",
+      "scenario": "multi_hop_reasoning",
+      "query": "Attack path from SQL injection to data breach",
+      "expected_steps": 3,
+      "relevant_ids": ["node_cwe_89", "node_cwe_200", "node_cwe_285"]
+    },
+    {
+      "query_id": "mh2",
+      "scenario": "multi_hop_reasoning",
+      "query": "Path from XSS to session hijacking",
+      "expected_steps": 2,
+      "relevant_ids": ["node_cwe_79", "node_cwe_287"]
+    }
+  ],
+  "remediation_cases": [
+    {
+      "case_id": "r1",
+      "scenario": "remediation_quality",
+      "finding_text": "SQL injection in login form",
+      "expected_remediations": ["Use prepared statements", "Input validation", "Parameterized queries"],
+      "relevant_cwes": ["CWE-89"]
+    },
+    {
+      "case_id": "r2",
+      "scenario": "remediation_quality",
+      "finding_text": "XSS in search parameter",
+      "expected_remediations": ["Output encoding", "Content Security Policy"],
+      "relevant_cwes": ["CWE-79"]
+    }
+  ]
+}

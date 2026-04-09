@@ -44,8 +44,11 @@ async def batch_ingest_cve(folder_path: str):
             await asyncio.gather(*batch)
 
 if __name__ == "__main__":
-    folder = input("Nhập đường dẫn thư mục chứa các file JSON CVE: ").strip()
+    import sys
+    if len(sys.argv) > 1:
+        folder = sys.argv[1]
+    else:
+        folder = input("Nhập đường dẫn thư mục chứa các file JSON CVE: ").strip()
     if folder:
         asyncio.run(batch_ingest_cve(folder))
-    else:
         print("Vui lòng nhập đường dẫn thư mục!")

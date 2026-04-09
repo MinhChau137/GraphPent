@@ -1,0 +1,223 @@
+{
+  "vector": {
+    "per_case": [
+      {
+        "case_id": "f1",
+        "scenario": "finding_correlation",
+        "mode": "vector",
+        "alpha": 1.0,
+        "finding_text": "SQL injection detected on /login.php parameter username",
+        "pred_cwes": [
+          "CWE-20",
+          "CWE-89"
+        ],
+        "truth_cwes": [
+          "CWE-89"
+        ],
+        "pred_true_positive": false,
+        "truth_true_positive": true,
+        "cwe_precision": 0.5,
+        "cwe_recall": 1.0,
+        "cwe_f1": 0.6666666666666666,
+        "decision_accuracy": 0.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f2",
+        "scenario": "finding_correlation",
+        "mode": "vector",
+        "alpha": 1.0,
+        "finding_text": "Possible XSS on search parameter q",
+        "pred_cwes": [
+          "CWE-200",
+          "CWE-79"
+        ],
+        "truth_cwes": [
+          "CWE-79"
+        ],
+        "pred_true_positive": false,
+        "truth_true_positive": true,
+        "cwe_precision": 0.5,
+        "cwe_recall": 1.0,
+        "cwe_f1": 0.6666666666666666,
+        "decision_accuracy": 0.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f3",
+        "scenario": "finding_correlation",
+        "mode": "vector",
+        "alpha": 1.0,
+        "finding_text": "Suspicious open redirect on next parameter",
+        "pred_cwes": [
+          "CWE-20"
+        ],
+        "truth_cwes": [
+          "CWE-601"
+        ],
+        "pred_true_positive": false,
+        "truth_true_positive": false,
+        "cwe_precision": 0.0,
+        "cwe_recall": 0.0,
+        "cwe_f1": 0.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "vector",
+      "alpha": 1.0,
+      "num_cases": 3,
+      "cwe_precision": 0.3333333333333333,
+      "cwe_recall": 0.6666666666666666,
+      "cwe_f1": 0.4444444444444444,
+      "decision_accuracy": 0.3333333333333333,
+      "false_positive_reduction_rate": 1.0
+    }
+  },
+  "graph": {
+    "per_case": [
+      {
+        "case_id": "f1",
+        "scenario": "finding_correlation",
+        "mode": "graph",
+        "alpha": 0.0,
+        "finding_text": "SQL injection detected on /login.php parameter username",
+        "pred_cwes": [
+          "CWE-89"
+        ],
+        "truth_cwes": [
+          "CWE-89"
+        ],
+        "pred_true_positive": true,
+        "truth_true_positive": true,
+        "cwe_precision": 1.0,
+        "cwe_recall": 1.0,
+        "cwe_f1": 1.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f2",
+        "scenario": "finding_correlation",
+        "mode": "graph",
+        "alpha": 0.0,
+        "finding_text": "Possible XSS on search parameter q",
+        "pred_cwes": [
+          "CWE-200",
+          "CWE-79"
+        ],
+        "truth_cwes": [
+          "CWE-79"
+        ],
+        "pred_true_positive": true,
+        "truth_true_positive": true,
+        "cwe_precision": 0.5,
+        "cwe_recall": 1.0,
+        "cwe_f1": 0.6666666666666666,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f3",
+        "scenario": "finding_correlation",
+        "mode": "graph",
+        "alpha": 0.0,
+        "finding_text": "Suspicious open redirect on next parameter",
+        "pred_cwes": [],
+        "truth_cwes": [
+          "CWE-601"
+        ],
+        "pred_true_positive": false,
+        "truth_true_positive": false,
+        "cwe_precision": 0.0,
+        "cwe_recall": 0.0,
+        "cwe_f1": 0.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "graph",
+      "alpha": 0.0,
+      "num_cases": 3,
+      "cwe_precision": 0.5,
+      "cwe_recall": 0.6666666666666666,
+      "cwe_f1": 0.5555555555555555,
+      "decision_accuracy": 1.0,
+      "false_positive_reduction_rate": 1.0
+    }
+  },
+  "hybrid": {
+    "per_case": [
+      {
+        "case_id": "f1",
+        "scenario": "finding_correlation",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "finding_text": "SQL injection detected on /login.php parameter username",
+        "pred_cwes": [
+          "CWE-89"
+        ],
+        "truth_cwes": [
+          "CWE-89"
+        ],
+        "pred_true_positive": true,
+        "truth_true_positive": true,
+        "cwe_precision": 1.0,
+        "cwe_recall": 1.0,
+        "cwe_f1": 1.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f2",
+        "scenario": "finding_correlation",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "finding_text": "Possible XSS on search parameter q",
+        "pred_cwes": [
+          "CWE-79"
+        ],
+        "truth_cwes": [
+          "CWE-79"
+        ],
+        "pred_true_positive": true,
+        "truth_true_positive": true,
+        "cwe_precision": 1.0,
+        "cwe_recall": 1.0,
+        "cwe_f1": 1.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 0.0
+      },
+      {
+        "case_id": "f3",
+        "scenario": "finding_correlation",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "finding_text": "Suspicious open redirect on next parameter",
+        "pred_cwes": [],
+        "truth_cwes": [
+          "CWE-601"
+        ],
+        "pred_true_positive": false,
+        "truth_true_positive": false,
+        "cwe_precision": 0.0,
+        "cwe_recall": 0.0,
+        "cwe_f1": 0.0,
+        "decision_accuracy": 1.0,
+        "fp_reduced_success": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "hybrid",
+      "alpha": 0.7,
+      "num_cases": 3,
+      "cwe_precision": 0.6666666666666666,
+      "cwe_recall": 0.6666666666666666,
+      "cwe_f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "false_positive_reduction_rate": 1.0
+    }
+  }
+}

@@ -14,12 +14,55 @@ from datetime import datetime
 from tqdm.asyncio import tqdm
 from evaluation.config import BenchmarkConfig
 from evaluation.scenarios import TEST_SCENARIOS
-from evaluation.ground_truth import load_ground_truth
-from evaluation.metrics import precision_at_k, recall_at_k, mrr, ndcg_at_k, compute_f1
 from app.core.logger import logger
 
+# Import metrics from eval_pipeline
+from evaluation.eval_pipeline import GraphRAGEvaluationPipeline, BaseRetriever, RetrievedItem, load_json
+
 config = BenchmarkConfig()
-GROUND_TRUTH = load_ground_truth()
+GROUND_TRUTH = load_json("ground_truth.json")
+
+
+class RealGraphRAGRetriever(BaseRetriever):
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    async def search(self, query: str, mode: str, top_k: int = 10, alpha: float = 0.7) -> List[RetrievedItem]:
+        payload = {
+            "query": query,
+            "limit": top_k,
+            "alpha": alpha
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                f"{self.base_url}/retrieve/query",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+
+        if resp.status_code != 200:
+            logger.error(f"API error: {resp.status_code} for query: {query}")
+            return []
+
+        data = resp.json()
+        results = data.get("results", [])
+        return [
+            RetrievedItem(
+                item_id=r.get("id"),
+                score=r.get("score", 0.0),
+                text=r.get("text", ""),
+                metadata=r.get("metadata", {})
+            ) for r in results
+        ]
+
+    def correlate_finding(self, finding_text: str, mode: str, top_k: int = 5, alpha: float = 0.7) -> Dict[str, Any]:
+        # Implement if needed, for now return empty
+        return {
+            "matched_cwes": [],
+            "matched_cves": [],
+            "decision_true_positive": False
+        }
 
 async def call_retrieve(query: str, mode: str) -> dict:
     """Call API /retrieve/query với mode tương ứng"""
@@ -69,7 +112,7 @@ async def run_benchmark():
                     result = await call_retrieve(query, mode_name)
 
                     # Tính metrics
-                    relevant = GROUND_TRUTH.get(query, {}).get("relevant_ids", [])
+                    relevant = set(GROUND_TRUTH.get(query, {}).get("relevant_ids", []))
 
                     row = {
                         "scenario_id": scenario["id"],
