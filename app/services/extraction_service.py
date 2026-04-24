@@ -15,13 +15,31 @@ class ExtractionService:
         self.graph_service = GraphService()
 
     def validate_entities(self, entities: list) -> list:
-        """Validate entities have meaningful names, not just CWE IDs."""
+        """Validate entities: meaningful names + confidence >= 0.85 (STRICT).
+        
+        Entity validation ensures graph node quality:
+        - Confidence >= 0.85 (HIGH threshold)
+        - Meaningful names (not generic IDs or 'unknown-entity')
+        - Sufficient properties
+        """
         validated = []
         for entity in entities:
             name = entity.get("name", "").strip()
             entity_id = entity.get("id", "").strip()
             
-            # Check if name is meaningful (not just CWE ID or empty)
+            # STEP 0: REJECT unknown-entity names immediately (PRIORITY FIX)
+            if name.lower() == "unknown-entity" or not name or len(name) < 2:
+                logger.debug(f"❌ Entity {entity_id}: invalid/unknown name '{name}'")
+                continue
+            
+            # STEP 1: Check confidence threshold (STRICT)
+            provenance = entity.get("provenance", {})
+            confidence = provenance.get("confidence", 0.85)
+            if confidence < 0.85:
+                logger.debug(f"❌ Entity {entity_id}: confidence={confidence:.2f} < 0.85")
+                continue  # Skip low-confidence entities
+            
+            # STEP 2: Validate meaningful names (existing logic)
             if not name or name.lower() == entity_id.lower() or re.match(r'^cwe-\d+$', name.lower()):
                 # Try to create a meaningful name from ID or properties
                 if entity.get("type") == "VulnerabilityType":
@@ -46,6 +64,65 @@ class ExtractionService:
             validated.append(entity)
         return validated
 
+    def filter_relations_by_confidence(self, relations: list, entity_ids: set) -> list:
+        """Filter relations with strict criteria to prevent orphaned edges (PRIORITY 2 FIX).
+        
+        Relation validation:
+        - Confidence >= 0.75 (LOWERED from 0.85 for better coverage)
+        - REQUIRE SOURCE entity to be local (strict: no floating edges)
+        - TARGET can be external (enables cross-chunk references)
+        - Skip relations where target entity is unknown/placeholder
+        
+        Returns: List of validated relations (guaranteed valid source & target)
+        """
+        filtered = []
+        rejected = []
+        
+        for relation in relations:
+            relation_id = relation.get('id', 'unknown')
+            source_id = relation.get("source_id", "")
+            target_id = relation.get("target_id", "")
+            rel_type = relation.get("type", "UNKNOWN")
+            
+            # VALIDATION 1: Check confidence
+            provenance = relation.get("provenance", {})
+            confidence = provenance.get("confidence", 0.75)
+            
+            if confidence < 0.75:
+                rejected.append(f"Rel {relation_id}: confidence={confidence:.2f} < 0.75")
+                continue
+            
+            # VALIDATION 2: Require valid, non-empty IDs (no unknown placeholders)
+            if not source_id or not target_id or "unknown" in source_id.lower() or "unknown" in target_id.lower():
+                rejected.append(f"Rel {relation_id}: invalid/unknown IDs (src={source_id}, tgt={target_id})")
+                continue
+            
+            # VALIDATION 3: Strict source requirement - source MUST be local
+            source_local = source_id in entity_ids
+            target_local = target_id in entity_ids
+            
+            if source_local:
+                # VALID: Source is local (in current chunk)
+                filtered.append(relation)
+                if target_local:
+                    logger.debug(f"✅ Rel {relation_id} ({rel_type}): LOCAL [{source_id}→{target_id}] conf={confidence:.2f}")
+                else:
+                    logger.debug(f"✓ Rel {relation_id} ({rel_type}): CROSS-CHUNK [{source_id}→{target_id}] conf={confidence:.2f}")
+            else:
+                # REJECT: Source not local (prevents floating/orphaned edges)
+                rejected.append(f"Rel {relation_id}: source not local")
+        
+        # Log filtering summary
+        if rejected:
+            if len(rejected) <= 3:
+                for reason in rejected:
+                    logger.debug(f"❌ {reason}")
+            else:
+                logger.debug(f"❌ Filtered {len(rejected)} relations (low confidence or no local anchor)")
+        
+        logger.debug(f"✓ Relation filtering: {len(filtered)} accepted, {len(rejected)} rejected")
+        return filtered
+
     async def extract_from_chunk(self, chunk_id: int) -> ExtractionResult:
         """Extract entities & relations từ một chunk."""
         await audit_log("extraction_start", {"chunk_id": chunk_id})
@@ -58,15 +135,34 @@ class ExtractionService:
             if not chunk:
                 raise ValueError(f"Chunk {chunk_id} not found")
 
-            # Gọi LLM
-            extraction_result = await self.llm.extract_entities_and_relations(chunk.content, chunk_id)
+            # Detect data type (CWE or CVE)
+            data_type = self.llm._detect_data_type(chunk.content)
+            
+            # Call appropriate extraction method
+            if data_type == "cve":
+                logger.info("Detected CVE data, using CVE extraction", chunk_id=chunk_id)
+                extraction_result = await self.llm.extract_entities_and_relations_from_cve(chunk.content, chunk_id)
+            else:
+                logger.info("Using CWE extraction", chunk_id=chunk_id)
+                extraction_result = await self.llm.extract_entities_and_relations(chunk.content, chunk_id)
 
-            # Validate entities for meaningful names
+            # Validate entities & filter by confidence
             if not extraction_result.error:
-                extraction_result.entities = self.validate_entities([entity.dict() for entity in extraction_result.entities])
-                # Convert back to Entity objects
-                from app.domain.schemas.extraction import Entity
-                extraction_result.entities = [Entity(**e) for e in extraction_result.entities]
+                validated_entity_dicts = self.validate_entities([entity.dict() for entity in extraction_result.entities])
+                entity_ids = {e.get("id") for e in validated_entity_dicts}
+                
+                # Filter relations by confidence & entity existence
+                filtered_relation_dicts = self.filter_relations_by_confidence(
+                    [r.dict() if hasattr(r, 'dict') else r for r in extraction_result.relations],
+                    entity_ids
+                )
+                
+                # Convert back to objects
+                from app.domain.schemas.extraction import Entity, Relation
+                extraction_result.entities = [Entity(**e) for e in validated_entity_dicts]
+                extraction_result.relations = [Relation(**r) for r in filtered_relation_dicts]
+                
+                logger.debug(f"After confidence filtering: {len(extraction_result.entities)} entities, {len(extraction_result.relations)} relations")
 
             # Lưu kết quả vào extraction_jobs (stub cho Phase sau)
             # TODO: Thêm bảng extraction_jobs và lưu entities_json

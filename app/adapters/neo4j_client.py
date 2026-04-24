@@ -50,17 +50,22 @@ class Neo4jAdapter:
             await tx.run(cypher, id=entity.id, name=entity.name, props=props)
             stats["entities_upserted"] += 1
 
-        # 2. Relations
+        # 2. Relations (PRIORITY 1 FIX: Store confidence + normalize casing)
         for rel in relations:
+            # Store confidence and other provenance in relation properties
             rel_props = {
+                "confidence": rel.provenance.confidence if rel.provenance else 0.75,
+                "source_chunk_id": rel.provenance.source_chunk_id if rel.provenance else None,
             }
+            rel_props.update(rel.properties)
+
+            # Normalize relation type to UPPERCASE (PRIORITY 3 FIX)
+            rel_type_normalized = rel.type.upper()
 
             cypher = f"""
             MATCH (source) WHERE source.id = $source_id
-            OPTIONAL MATCH (target) WHERE target.id = $target_id
-            WITH source, target
-            WHERE target IS NOT NULL
-            MERGE (source)-[r:{rel.type}]->(target)
+            MATCH (target) WHERE target.id = $target_id
+            MERGE (source)-[r:{rel_type_normalized}]->(target)
             ON CREATE SET 
                 r += $props,
                 r.created_at = datetime()

@@ -48,6 +48,29 @@ class Relation(BaseModel):
     properties: Dict[str, Any] = Field(default_factory=dict)
     provenance: Provenance = Field(default_factory=Provenance)
 
+    @model_validator(mode='before')
+    @classmethod
+    def fallback_relation_ids(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if data.get("id") is None or str(data.get("id")).strip() == "":
+                data["id"] = str(uuid.uuid4())
+
+            # Keep invalid relations fail-safe: normalize missing IDs to empty strings
+            # so the extraction layer can reject them before graph storage.
+            if data.get("source_id") is None:
+                data["source_id"] = ""
+            if data.get("target_id") is None:
+                data["target_id"] = ""
+
+            if data.get("source") is not None and not data.get("source_id"):
+                data["source_id"] = str(data.get("source"))
+            if data.get("target") is not None and not data.get("target_id"):
+                data["target_id"] = str(data.get("target"))
+
+            if data.get("type") is None or str(data.get("type")).strip() == "":
+                data["type"] = "RELATED_TO"
+        return data
+
 class ExtractionResult(BaseModel):
     entities: List[Entity] = Field(default_factory=list)
     relations: List[Relation] = Field(default_factory=list)

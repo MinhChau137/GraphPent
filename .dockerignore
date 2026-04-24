@@ -1,0 +1,74 @@
+.git
+.gitignore
+.venv/
+.env.example
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+dist
+build
+
+# Development
+.pytest_cache
+.mypy_cache
+*.log
+*.tmp
+test_*.py
+conftest.py
+
+# IDEs
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+
+# Large directories to exclude
+volumes/
+data/
+evaluation/
+logs/
+.git/
+
+# Documentation (optional - include only if space matters)
+# *.md
+# docs/
+
+# Large data files
+*.csv
+*.xlsx
+extraction_result.json
+results.txt
+
+# Docker files themselves
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Temporary
+*.bak
+*.backup
+*.swp
+*~
+
+# Python packaging
+MANIFEST
+setup.py
+setup.cfg
+
+# Node (if using any frontend)
+node_modules/
+npm-debug.log
+
+# Keep only what's needed for app to run
+# app/
+# requirements.txt
+# scripts/

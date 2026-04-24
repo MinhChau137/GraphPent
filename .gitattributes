@@ -1,0 +1,1 @@
+data/cvelistV5-main.zip filter=lfs diff=lfs merge=lfs -text

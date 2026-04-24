@@ -1,608 +1,967 @@
-# GraphRAG Pentest Platform
+# 🕸️ GraphRAG Pentest Platform
 
-Nền tảng GraphRAG (Graph Retrieval-Augmented Generation) cho Penetration Testing, sử dụng kiến trúc hybrid với Neo4j graph database và Weaviate vector database.
+**Nền tảng GraphRAG** (Graph Retrieval-Augmented Generation) cho Penetration Testing tự động hóa, sử dụng kiến trúc **Hybrid Knowledge Graph** kết hợp Neo4j (Graph DB) + Weaviate (Vector DB) + Ollama (Local LLM).
+
+**Phiên bản:** v0.2.0 (Phase 2 - Lab Stage)  
+**Mục đích:** Xây dựng hệ thống truy xuất thông tin bảo mật thông minh dựa trên đồ thị tri thức CVE/CWE
 
 ## 📋 Tổng quan
 
-Hệ thống này cho phép:
-- **Ingest**: Upload và xử lý tài liệu (PDF, DOCX, JSON)
-- **Extract**: Trích xuất entities và relationships từ văn bản
-- **Graph**: Lưu trữ và truy vấn dữ liệu dưới dạng đồ thị tri thức
-- **Retrieve**: Tìm kiếm hybrid (vector + graph) với fusion reranking
-- **Workflow**: Multi-agent workflow tự động cho phân tích bảo mật
+Hệ thống cho phép:
+- **📄 Ingest** (Phase 4): Upload & xử lý tài liệu (PDF, DOCX, JSON) → Chunking → Vector indexing
+- **🔍 Extract** (Phase 5): Trích xuất entities & relationships từ văn bản dùng LLM
+- **🕸️ Graph** (Phase 6): Lưu trữ & upsert dữ liệu vào đồ thị tri thức (Neo4j)
+- **🔎 Retrieve** (Phase 7): Tìm kiếm hybrid (Vector + Graph) với fusion reranking
+- **🤖 Workflow** (Phase 8): Multi-agent workflow tự động cho phân tích bảo mật
+- **🛠️ Tools** (Phase 9): CVE analysis, Nuclei scanner integration (Lab-only)
 
 ## 🏗️ Kiến trúc hệ thống
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   FastAPI       │    │   PostgreSQL    │    │     Redis       │
-│   Backend       │    │   (Metadata)    │    │   (Cache)       │
-│                 │    │                 │    │                 │
-│ • REST API      │    │ • Documents      │    │ • Sessions      │
-│ • Async tasks   │    │ • Chunks         │    │ • Results       │
-│ • Validation    │    │ • Jobs           │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │     Neo4j       │
-                    │  (Graph DB)     │
-                    │                 │
-                    │ • Entities      │
-                    │ • Relationships │
-                    │ • Graph queries │
-                    └─────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   Weaviate      │
-                    │ (Vector DB)     │
-                    │                 │
-                    │ • Embeddings    │
-                    │ • Similarity    │
-                    │ • Hybrid search │
-                    └─────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │    Ollama       │
-                    │    (LLM)        │
-                    │                 │
-                    │ • Text analysis │
-                    │ • Entity ext.   │
-                    │ • Summarization │
-                    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    FASTAPI BACKEND (Port 8000)                  │
+│  Routers: Ingest | Extract | Graph | Retrieve | Workflow | Tools
+└─────────────────────────────────────────────────────────────────┘
+    ↓                ↓                ↓                ↓
+┌──────────┐  ┌──────────┐  ┌─────────────┐  ┌──────────────┐
+│PostgreSQL│  │  Redis   │  │  MinIO(S3)  │  │ Ollama (LLM) │
+│ (5432)   │  │ (6379)   │  │   (9000)    │  │   (11434)    │
+│ Metadata │  │ Cache &  │  │  Document   │  │  Entity/Rel  │
+│Document  │  │ Sessions │  │  Storage    │  │  Extraction  │
+│ Chunks   │  │          │  │             │  │              │
+└──────────┘  └──────────┘  └─────────────┘  └──────────────┘
+    ↓
+┌──────────────────────────────────────────────────────────┐
+│         KNOWLEDGE GRAPHS & VECTOR DATABASES              │
+├──────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌─────────────────┐         ┌─────────────────────┐    │
+│  │  Neo4j (7687)   │         │ Weaviate (8080)     │    │
+│  │                 │         │                     │    │
+│  │ • Entity nodes  │         │ • Chunk vectors     │    │
+│  │ • Relationships │         │ • Vector index      │    │
+│  │ • Graph query   │         │ • Hybrid search     │    │
+│  │ • CYPHER API    │         │ • Similarity search │    │
+│  └─────────────────┘         └─────────────────────┘    │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Cài đặt và chạy
+### 🔌 Integrations
+- **PostgreSQL**: Document metadata + chunk storage (SQLAlchemy ORM)
+- **Neo4j**: Knowledge graph (CYPHER + APOC plugin)
+- **Weaviate**: Vector embeddings + semantic search
+- **MinIO**: Object storage (S3-compatible)
+- **Ollama**: Local LLM extraction (llama3.2:3b)
+
+## 🚀 Cài đặt & Khởi động
 
 ### Yêu cầu hệ thống
 
-- Docker & Docker Compose
-- 8GB RAM (khuyến nghị)
-- 20GB dung lượng ổ cứng
+- Docker & Docker Compose v2+
+- 8GB RAM (khuyến nghị), 16GB+ cho production
+- 20GB+ dung lượng ổ cứng
+- Windows: WSL2 backend for Docker Desktop
 
-### 1. Chuẩn bị môi trường
+### 1️⃣ Chuẩn bị môi trường
 
 ```bash
-# Clone hoặc tạo thư mục project
 cd GraphPent
 
-# Copy file cấu hình
+# Tạo file .env từ template
 cp .env.example .env
 ```
 
-### 2. Cấu hình môi trường (.env)
+### 2️⃣ Cấu hình (.env)
 
 ```bash
-# Database
+# 📦 Database
 POSTGRES_DB=pentest_graphrag
 POSTGRES_USER=graphrag_user
-POSTGRES_PASSWORD=your_password_here
+POSTGRES_PASSWORD=your_secure_password
 POSTGRES_HOST=postgres
 
-# Neo4j
+# 🕸️ Neo4j
 NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=password123
 
-# Weaviate
+# 🔍 Weaviate (vector database)
 WEAVIATE_URL=http://weaviate:8080
-WEAVIATE_API_KEY=
+WEAVIATE_API_KEY=  # anonymous for lab
 
-# MinIO
+# 💾 MinIO (object storage)
 MINIO_ENDPOINT=minio:9000
 MINIO_ROOT_USER=minioadmin
 MINIO_ROOT_PASSWORD=minioadmin123
 MINIO_BUCKET=graphrag-bucket
 
-# LLM
+# 🤖 Ollama (local LLM)
 OLLAMA_BASE_URL=http://ollama:11434
 OLLAMA_MODEL=llama3.2:3b
+EMBEDDING_MODEL=nomic-embed-text-v1.5
+
+# 🔐 Security
+ALLOWED_TARGETS=["127.0.0.1", "localhost"]
+MAX_TOOL_TIMEOUT=300
+RATE_LIMIT_PER_MIN=30
 ```
 
-### 3. Khởi động hệ thống
+### 3️⃣ Khởi động hệ thống
 
 ```bash
-# Build và chạy tất cả services
-docker compose up --build -d
+# Build & start all services
+make up
 
-# Kiểm tra trạng thái
+# Hoặc: docker compose up --build -d
+
+# Kiểm tra status
 docker compose ps
 
-# Xem logs
+# View logs
 docker compose logs -f backend
 ```
 
-### 4. Truy cập các giao diện
+### 4️⃣ Truy cập giao diện
 
-- **API Documentation**: http://localhost:8000/docs
-- **Neo4j Browser**: http://localhost:7474 (neo4j/password123)
-- **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin123)
-- **Weaviate**: http://localhost:8080/v1/.well-known/ready
+| Giao diện | URL | Login |
+|-----------|-----|-------|
+| **Swagger Docs** | http://localhost:8000/docs | — |
+| **ReDoc** | http://localhost:8000/redoc | — |
+| **Neo4j Browser** | http://localhost:7474 | neo4j / password123 |
+| **MinIO Console** | http://localhost:9001 | minioadmin / minioadmin123 |
+| **Weaviate** | http://localhost:8080 | (anonymous) |
 
-## 📚 API Endpoints
+## � Luồng Xử Lý Dữ Liệu (Data Pipeline)
 
-### 🔄 Ingest (Upload tài liệu)
+### **Phase 4: Ingestion** ✅
 
+```
+┌──────────┐
+│ Upload   │ (PDF, DOCX, JSON, etc)
+└─────────┬┘
+          ↓
+   ┌────────────────────┐
+   │ 1. Parse Document  │ ← Detect format, extract text
+   └────────────────────┘
+          ↓
+   ┌────────────────────┐
+   │ 2. Chunk Text      │ ← Sliding window chunking
+   └────────────────────┘
+          ↓
+   ┌────────────────────┐
+   │ 3. Deduplication   │ ← SHA256 hash check
+   └────────────────────┘
+          ↓
+   ┌────────────────────┐
+   │ 4. Store Atomically│ ← DB + MinIO + Weaviate
+   └────────────────────┘
+          ↓
+    Output: { document_id, chunks_count }
+```
+
+**Endpoint:** `POST /ingest/document`
+
+**Databaseе:** `documents` + `chunks` tables  
+**Storage:** MinIO (raw/{uuid}_{filename})
+
+---
+
+### **Phase 5: Extraction** ✅
+
+```
+┌──────────────────┐
+│ Fetch Chunk      │
+└─────────┬────────┘
+          ↓
+┌──────────────────────────────────┐
+│ LLM Extraction (Ollama)          │
+│                                  │
+│ Prompt: Extract from CVE/CWE     │
+│ Output: JSON entities + relations│
+└──────────┬───────────────────────┘
+           ↓
+┌──────────────────────────────────┐
+│ Validation & Name Enrichment     │
+│                                  │
+│ • Ensure meaningful entity names │
+│ • Fix CWE ID → Descriptions     │
+│ • Validate entity types         │
+└──────────┬───────────────────────┘
+           ↓
+    Output: ExtractionResult
+    { entities[], relations[] }
+```
+
+**Endpoint:** `POST /extract/chunk/{id}`
+
+**LLM Model:** llama3.2:3b (Ollama)  
+**Confidence:** tracked in provenance
+
+---
+
+### **Phase 6: Graph Upsert** ✅
+
+```
+┌──────────────────────────────────┐
+│ Neo4j MERGE (Entity Upsert)      │
+│                                  │
+│ MERGE (n:${type} {id: ...})     │
+│   ON CREATE: set properties      │
+│   ON MATCH: update properties    │
+│ Result: Deduped graph nodes     │
+└──────────┬───────────────────────┘
+           ↓
+┌──────────────────────────────────┐
+│ Create Relationships             │
+│                                  │
+│ MATCH (source)-[r:TYPE]->(target)
+│ Properties: provenance, metadata │
+└──────────┬───────────────────────┘
+           ↓
+    Output: { entities_upserted, relations_created }
+```
+
+**Service:** `GraphService.process_extraction_result()`
+
+**Neo4j:** Dynamic labels (Weakness, CWE, VulnerabilityType, ...)
+
+---
+
+### **Phase 7: Hybrid Retrieval** ✅
+
+```
+Query: "SQL injection vulnerability"
+           ↓
+    ┌──────┴──────┐
+    ↓             ↓
+Vector Search   Graph Traversal
+(Weaviate)      (Neo4j)
+├─ Embed query   ├─ Fulltext search
+├─ Cosine sim    ├─ Keyword match
+├─ Top-K         ├─ BFS expansion
+↓                ↓
+[V1, V2, V3...] [G1, G2, G3...]
+    ↓             ↓
+    └──────┬──────┘
+           ↓
+    ┌─────────────────────────────┐
+    │ Fusion Reranking (α=0.7)   │
+    │ score = α*graph +           │
+    │         (1-α)*vector       │
+    └──────────┬──────────────────┘
+               ↓
+    Final Results (ranked)
+```
+
+**Endpoint:** `POST /retrieve/query`
+
+**Parameters:** `query`, `limit`, `alpha` (0.0-1.0)
+
+---
+
+### **Phase 8: Multi-Agent Workflow** ✅
+
+```
+LangGraph DAG:
+    planner → retrieval → graph_reasoning
+                             ↓
+                         tool → report
+                                  ↓
+                           human_approval → END
+```
+
+**Endpoint:** `POST /workflow/run`
+
+**State:** query, retrieval_results, graph_context, tool_results, final_answer
+
+---
+
+## 📚 API Endpoints (Đầy đủ)
+
+| Endpoint | Method | Phase | Mô tả |
+|----------|--------|-------|-------|
+| `/health` | GET | — | Health check |
+| `/config` | GET | — | Safe config exposure |
+| **`/ingest/document`** | POST | 4 | Upload & ingest document |
+| **`/extract/chunk/{id}`** | POST | 5 | Extract entities from chunk |
+| **`/retrieve/query`** | POST | 7 | Hybrid search (vector + graph) |
+| **`/workflow/run`** | POST | 8 | Run multi-agent workflow |
+| `/tools/cve/analyze` | POST | 9 | CVE exploitability |
+| `/tools/nuclei/cve` | POST | 9 | Nuclei scanner |
+| `/graph/query` | POST | 6 | CYPHER query execution |
+| `/dashboard/*` | GET | — | Metrics & monitoring |
+
+### 📝 API Examples
+
+#### Ingest Document
 ```bash
-# Upload file
 curl -X POST http://localhost:8000/ingest/document \
-  -F "file=@document.pdf" \
-  -F "metadata={\"source\": \"manual\"}"
-
-# Response
-{
-  "document_id": 1,
-  "filename": "document.pdf",
-  "chunks_count": 25,
-  "status": "success"
-}
+  -F "file=@data/nvdcve-2.0-modified.json"
 ```
 
-### 🔍 Extract (Trích xuất entities)
-
+#### Extract Entities
 ```bash
-# Extract từ chunk
 curl -X POST http://localhost:8000/extract/chunk/1
-
-# Response
-{
-  "entities": [...],
-  "relationships": [...],
-  "status": "success"
-}
 ```
 
-### 🕸️ Graph (Đồ thị tri thức)
-
+#### Hybrid Retrieve
 ```bash
-# Upsert entities và relationships
-curl -X POST http://localhost:8000/graph/upsert \
-  -H "Content-Type: application/json" \
-  -d @extraction_result.json
-
-# Query đồ thị
-curl -X POST http://localhost:8000/graph/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "MATCH (n:CVE) RETURN n LIMIT 5"}'
-```
-
-### 🔎 Retrieve (Tìm kiếm hybrid)
-
-```bash
-# Hybrid search
 curl -X POST http://localhost:8000/retrieve/query \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "CVE-2023-XXXX vulnerability",
-    "limit": 10
+    "query": "SQL injection in CWE-89",
+    "limit": 10,
+    "alpha": 0.7
   }'
-
-# Response
-{
-  "results": [
-    {
-      "id": "cve-2023-xxxx",
-      "content": "CVE: CVE-2023-XXXX...",
-      "metadata": {"type": "CVE"},
-      "graph_score": 0.8,
-      "vector_score": 0.0,
-      "final_score": 0.48
-    }
-  ],
-  "total": 1
-}
 ```
 
-### 🤖 Workflow (Multi-agent)
-
+#### Run Workflow
 ```bash
-# Chạy workflow tự động
 curl -X POST http://localhost:8000/workflow/run \
   -H "Content-Type: application/json" \
-  -d '{
-    "query": "analyze CVE-2023-XXXX vulnerability"
-  }'
+  -d '{"query": "Find critical CVEs from 2024"}'
+```
 
-# Response
+## 🛠️ Batch Processing Scripts
+
+### 📥 Batch Ingest CVE Data
+
+Tự động scan & upload tất cả file JSON CVE từ thư mục:
+
+```bash
+python scripts/batch_ingest_cve.py
+# Nhập đường dẫn thư mục (VD: /data/cve_json)
+# → Upload async 5 files concurrently
+# → Create documents & chunks
+```
+
+**Code:** `scripts/batch_ingest_cve.py`
+
+---
+
+### 🔄 Batch Extract & Upsert
+
+Extraction từ chunks và upsert vào Neo4j:
+
+```bash
+python scripts/batch_extract_upsert.py --start 1 --end 100
+# --start: Chunk ID bắt đầu (default: 1)
+# --end: Chunk ID kết thúc (default: 10)
+```
+
+**Output:** Chi tiết log từng chunk (success/error)
+
+**Code:** `scripts/batch_extract_upsert.py`
+
+---
+
+### 🚀 Full Pipeline (Automatic)
+
+Orchestrate toàn bộ pipeline: Ingest → Extract → Upsert:
+
+```bash
+python scripts/batch_full_pipeline_cve.py
+# 1. Scan /data/cve_json
+# 2. Ingest tất cả files
+# 3. Extract entities per chunk
+# 4. Upsert to Neo4j
+# 5. Log summary results
+```
+
+**Code:** `scripts/batch_full_pipeline_cve.py`
+
+---
+
+## 📊 Database Schemas
+
+### PostgreSQL
+
+```sql
+-- Documents Table
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR,
+    content_type VARCHAR,
+    minio_path VARCHAR UNIQUE NOT NULL,
+    doc_metadata JSON,
+    hash VARCHAR UNIQUE,
+    chunks_count INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Chunks Table
+CREATE TABLE chunks (
+    id SERIAL PRIMARY KEY,
+    document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
+    chunk_index INTEGER,
+    content TEXT,
+    chunk_metadata JSON,
+    weaviate_uuid UUID,
+    hash VARCHAR UNIQUE,
+    created_at TIMESTAMP
+);
+```
+
+**Access:**
+```bash
+docker compose exec postgres psql -U graphrag_user -d pentest_graphrag
+```
+
+---
+
+### Neo4j
+
+**Dynamic Labels:**
+```
+├── Weakness (CWE weakness)
+├── CWE (CWE reference)
+├── VulnerabilityType (SQL Injection, XSS, ...)
+├── Mitigation
+├── Consequence
+├── DetectionMethod
+├── Platform
+└── ... (any entity.type value)
+```
+
+**Node Properties:**
+```
 {
-  "status": "success",
-  "final_answer": "Analysis report...",
-  "retrieval_count": 5,
-  "steps_completed": "end"
+  id: "cwe-89",
+  name: "SQL Injection",
+  properties: {...},
+  created_at: timestamp,
+  updated_at: timestamp
 }
 ```
 
-## 🛠️ Sử dụng nâng cao
-
-### Batch Processing CVE Data
-
-Script `batch_full_pipeline_cve.py` sẽ tự động scan và xử lý **tất cả file JSON CVE** trong thư mục `/data`:
-
-1. **Tự động scan**: Tìm tất cả file `.json` trong `/data`
-2. **Ingest**: Upload và chunking tài liệu
-3. **Extract**: Sử dụng LLM để trích xuất entities & relations  
-4. **Graph**: Upsert dữ liệu vào Neo4j knowledge graph
-
-```bash
-# Chạy batch processing cho TẤT CẢ CVE data trong /data
-make batch-process
-
-# Hoặc dùng Docker Compose
-docker compose --profile batch up batch-processor
-
-# Xem kết quả xử lý
-docker compose exec backend cat batch_cve_log.json
+**Relationships:**
+```
+├── :LEADS_TO (CWE → Consequence)
+├── :MITIGATES (Mitigation → Weakness)
+├── :HAS_CONSEQUENCE (Weakness → Consequence)
+├── :RELATED_TO (Entity → Entity)
+└── :MENTIONED_IN (Entity → Document)
 ```
 
-**Lưu ý**: Đảm bảo file CVE JSON đã được đặt trong thư mục `data/` của project.
+**Query Examples:**
+```cypher
+-- Find all SQL injection related entities
+MATCH (n) WHERE n.name CONTAINS "SQL Injection"
+RETURN n LIMIT 20
 
-### Manual Data Ingestion Pipeline
+-- Find relationships
+MATCH (n)-[r]->(m) 
+WHERE n.name CONTAINS "CWE"
+RETURN n, r, m LIMIT 10
 
-```bash
-# 1. Upload tài liệu
-DOC_ID=$(curl -s -X POST http://localhost:8000/ingest/document \
-  -F "file=@cve-data.json" | jq -r '.document_id')
-
-# 2. Extract entities
-curl -X POST http://localhost:8000/extract/chunk/$DOC_ID > extraction_result.json
-
-# 3. Upsert vào đồ thị
-curl -X POST http://localhost:8000/graph/upsert \
-  -H "Content-Type: application/json" \
-  -d @extraction_result.json
-```
-
-### Database Queries
-
-```bash
-# Kiểm tra documents
-docker compose exec postgres psql -U graphrag_user -d pentest_graphrag -c "
-SELECT id, filename, created_at FROM documents;"
-
-# Kiểm tra graph nodes
-docker compose exec neo4j cypher-shell -u neo4j -p password123 "
+-- Count by type
 MATCH (n) RETURN labels(n)[0] as type, count(n) as count
-ORDER BY count DESC LIMIT 5;"
-
-# Kiểm tra vector collections
-curl http://localhost:8080/v1/schema
+ORDER BY count DESC
 ```
 
-## 🔧 Troubleshooting
+**Access:**
+```bash
+docker compose exec neo4j cypher-shell -u neo4j -p password123
+```
 
-### Service không khởi động
+---
+
+### Weaviate
+
+**Collection:** `Chunks` (vector database)
+
+```json
+{
+  "chunk_id": "uuid",
+  "content": "chunk text",
+  "document_id": 1,
+  "_embedding": [0.1, 0.2, ...]  // vector
+}
+```
+
+**Access:**
+```bash
+curl http://localhost:8080/v1/schema
+curl -X POST http://localhost:8080/v1/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ Get { Chunks { chunk_id content } } }"}'
+```
+
+---
+
+## 🏗️ Project Structure
+
+```
+GraphPent/
+├── app/
+│   ├── main.py                    # FastAPI app entry
+│   ├── config/settings.py         # Pydantic Settings (env config)
+│   │
+│   ├── core/
+│   │   ├── logger.py              # Structlog logging
+│   │   └── security.py            # Request ID, audit log
+│   │
+│   ├── adapters/                  # External service integrations
+│   │   ├── postgres.py            # SQLAlchemy models + session
+│   │   ├── neo4j_client.py        # Neo4j async driver
+│   │   ├── weaviate_client.py     # Vector search client
+│   │   ├── minio_client.py        # S3-compatible storage
+│   │   └── llm_client.py          # Ollama LLM client
+│   │
+│   ├── services/                  # Business logic layer
+│   │   ├── ingestion_service.py   # Phase 4: Parse + Chunk + Index
+│   │   ├── extraction_service.py  # Phase 5: LLM extraction
+│   │   ├── graph_service.py       # Phase 6: Neo4j upsert
+│   │   ├── retriever_service.py   # Phase 7: Hybrid search
+│   │   ├── report_service.py      # Phase 8: Report generation
+│   │   └── tool_service.py        # Phase 9: Tool wrappers
+│   │
+│   ├── agents/langgraph/          # Multi-agent workflow
+│   │   ├── graph.py               # LangGraph DAG
+│   │   ├── state.py               # AgentState schema
+│   │   └── nodes.py               # Agent node implementations
+│   │
+│   ├── api/v1/routers/            # REST API endpoints
+│   │   ├── ingest.py              # POST /ingest/document
+│   │   ├── extract.py             # POST /extract/chunk/{id}
+│   │   ├── graph.py               # Graph query endpoints
+│   │   ├── retrieve.py            # POST /retrieve/query
+│   │   ├── workflow.py            # POST /workflow/run
+│   │   ├── tools.py               # CVE/Nuclei tools
+│   │   └── dashboard.py           # Metrics endpoints
+│   │
+│   ├── domain/schemas/            # Pydantic data models
+│   │   ├── extraction.py          # Entity, Relation, ExtractionResult
+│   │   ├── document.py            # Document schemas
+│   │   └── pentest.py             # Pentest-specific schemas
+│   │
+│   └── utils/                     # Helper functions
+│       ├── chunking.py            # Text chunking
+│       ├── parsers.py             # PDF/DOCX/JSON parsing
+│       └── helpers.py             # Utility functions
+│
+├── evaluation/                    # Benchmark framework
+│   ├── runner.py                  # Benchmark orchestrator
+│   ├── scenarios.py               # Test scenarios & queries
+│   ├── metrics.py                 # Precision, Recall, NDCG, MRR
+│   ├── ground_truth.py            # Ground truth data
+│   └── results/                   # CSV benchmark outputs
+│
+├── scripts/
+│   ├── batch_ingest_cve.py       # Batch upload CVE files
+│   ├── batch_extract_upsert.py   # Batch extraction & graph upsert
+│   ├── batch_full_pipeline_cve.py # Full pipeline orchestration
+│   └── bootstrap/                 # Database initialization scripts
+│       ├── postgres_init.sql
+│       ├── neo4j_bootstrap.cypher
+│       ├── weaviate_bootstrap.py
+│       └── minio_bootstrap.py
+│
+├── data/
+│   ├── cwec_v4.19.1.xml          # CWE XML dataset
+│   ├── nvdcve-2.0-modified.json  # CVE JSON dataset
+│   └── samples/                   # Sample test data
+│
+├── tests/                         # Unit & integration tests
+│
+├── docker-compose.yml             # All services (7 containers)
+├── Dockerfile                     # Backend container
+├── Dockerfile.ollama              # Ollama container
+├── Makefile                       # Dev commands
+├── requirements.txt               # Python dependencies
+└── README.md                      # This file
+```
+
+## � Troubleshooting
+
+### ❌ Services không khởi động
 
 ```bash
-# Kiểm tra logs
-docker compose logs <service_name>
+# Kiểm tra logs chi tiết
+docker compose logs <service_name> --tail 50
 
 # Restart service
 docker compose restart <service_name>
 
-# Rebuild nếu cần
-docker compose up --build <service_name>
+# Rebuild nếu có thay đổi
+docker compose up --build <service_name> -d
 ```
 
-### API trả về lỗi 500
+### ❌ API trả về 500 error
 
 ```bash
-# Kiểm tra backend logs
-docker compose logs backend --tail 50
+# Xem backend logs
+docker compose logs backend --tail 100
 
-# Test kết nối database
+# Test kết nối Neo4j
 docker compose exec backend python -c "
 from app.adapters.neo4j_client import Neo4jAdapter
-adapter = Neo4jAdapter()
-print('Neo4j connected')
+try:
+    adapter = Neo4jAdapter()
+    print('✅ Neo4j connected')
+except Exception as e:
+    print(f'❌ Neo4j error: {e}')
 "
+
+# Test kết nối PostgreSQL
+docker compose exec postgres pg_isready
 ```
 
-### Workflow endpoint trả về 404
-
-- Đảm bảo đã cài đặt `langgraph` trong requirements.txt
-- Kiểm tra router được enable trong `app/main.py`
-- Restart backend sau khi thay đổi
-
-### Không tìm thấy dữ liệu
+### ❌ Extraction fails
 
 ```bash
-# Kiểm tra dữ liệu trong databases
-docker compose exec neo4j cypher-shell -u neo4j -p password123 "MATCH (n) RETURN count(n);"
-docker compose exec postgres psql -U graphrag_user -d pentest_graphrag -c "SELECT count(*) FROM documents;"
+# Kiểm tra Ollama đang chạy
+docker compose logs ollama --tail 20
+
+# Kiểm tra model đã load
+docker compose exec ollama ollama list
+
+# Chạy inference test
+curl -X POST http://localhost:11434/api/generate \
+  -d '{"model": "llama3.2:3b", "prompt": "test"}'
 ```
 
-### Memory issues
+### ❌ Memory/Storage issues
 
 ```bash
-# Tăng RAM cho Docker Desktop
-# Hoặc giảm batch size trong scripts
-# Hoặc chạy services riêng lẻ
-docker compose up postgres neo4j backend -d
+# Giảm batch size
+BATCH_SIZE=5 python scripts/batch_extract_upsert.py
+
+# Xóa logs cũ
+docker compose exec backend rm logs/*
+
+# Kiểm tra disk space
+df -h
 ```
 
-## 🧪 Testing
+### ❌ Workflow endpoint 404
 
 ```bash
-# Chạy unit tests
-docker compose exec backend python -m pytest tests/
+# Đảm bảo langgraph được cài
+pip list | grep langgraph
 
-# Test API endpoints
-docker compose exec backend python -c "
-import requests
-response = requests.get('http://localhost:8000/health')
-print(response.json())
-"
+# Kiểm tra workflow router được enable trong main.py
+docker compose exec backend grep "workflow_router" app/main.py
+
+# Restart backend
+docker compose restart backend
 ```
 
-## 📊 Monitoring
+---
+
+## 🧪 Testing & Validation
 
 ### Health Checks
 
 ```bash
-# Tất cả services
+# API health
 curl http://localhost:8000/health
 
-# Individual services
-curl http://localhost:8080/v1/.well-known/ready  # Weaviate
-curl http://localhost:7474/browser/             # Neo4j
+# All services status
+docker compose ps
+
+# Service-specific checks
+curl http://localhost:8080/v1/.well-known/ready          # Weaviate
+curl http://localhost:7474/browser/                       # Neo4j
+docker compose exec postgres pg_isready                   # PostgreSQL
+docker compose exec redis redis-cli ping                  # Redis
 ```
 
-### Logs
+### API Smoke Tests
 
 ```bash
-# Theo dõi logs real-time
-docker compose logs -f backend
+# Test ingest
+curl -X POST http://localhost:8000/ingest/document \
+  -F "file=@data/samples/test.json"
 
-# Lọc logs theo level
-docker compose logs backend | grep ERROR
+# Test extract
+curl -X POST http://localhost:8000/extract/chunk/1
+
+# Test retrieve
+curl -X POST http://localhost:8000/retrieve/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "test", "limit": 5}'
+
+# Test workflow
+curl -X POST http://localhost:8000/workflow/run \
+  -H "Content-Type: application/json" \
+  -d '{"query": "test query"}'
 ```
 
-## 🚀 Production Deployment
-
-### Environment Variables
+### Unit Tests
 
 ```bash
-# Production settings
-APP_ENV=production
-LOG_LEVEL=WARNING
-OLLAMA_MODEL=llama3.2:7b  # Model lớn hơn
+# Run all tests
+docker compose exec backend python -m pytest tests/ -v
 
-# Security
-ALLOWED_TARGETS=["your-domain.com"]
-MAX_TOOL_TIMEOUT=600
+# Run specific test file
+docker compose exec backend python -m pytest tests/test_extraction.py -v
+
+# With coverage
+docker compose exec backend python -m pytest tests/ --cov=app --cov-report=html
 ```
-
-### Scaling
-
-```bash
-# Chạy multiple backend instances
-docker compose up --scale backend=3 -d
-
-# External databases
-# Cấu hình POSTGRES_HOST, NEO4J_URI, etc. trỏ đến external DB
-```
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Tạo feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push: `git push origin feature/new-feature`
-5. Tạo Pull Request
-
-## 📝 License
-
-MIT License - Xem file LICENSE để biết thêm chi tiết.
-
-## 📞 Support
-
-- **Issues**: Tạo issue trên GitHub
-- **Discussions**: Thảo luận trên GitHub Discussions
-- **Documentation**: Xem docs/ folder
-
-# Khởi động hệ thống chính
-docker compose up -d
-
-# Chạy batch processing TỰ ĐỘNG (không cần nhập gì)
-make batch-process
-
-# Hoặc dùng Docker Compose
-docker compose --profile batch up batch-processor
 
 ---
 
-**Phiên bản**: 0.2.0
-**Cập nhật cuối**: April 2026
+## 📊 Monitoring & Performance
 
-   curl -X POST http://localhost:8000/graph/upsert -H "Content-Type: application/json" -d @extraction_result.json
+### Logs Monitoring
 
-curl -X POST http://localhost:8000/retrieve/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "vulnerability in DVWA or SQL injection",
-    "limit": 10,
-    "alpha": 0.65
-  }'
+```bash
+# Real-time logs
+docker compose logs -f backend
 
-  curl -X POST http://localhost:8000/workflow/run \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Tìm vulnerability SQL injection trong DVWA"}'
+# Filter by error level
+docker compose logs backend | grep ERROR
 
-// View all entities
-MATCH (n) RETURN n LIMIT 20
-MATCH (n)-[r]->(m) RETURN n,r,m625
+# View specific timestamp
+docker compose logs backend --since 2024-04-20T10:00:00
+```
 
-// Find specific vulnerabilities
-MATCH (n) WHERE n.name CONTAINS "CVE" RETURN n
+### Query Performance
 
-// Find relations
-MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 10
+```bash
+# Neo4j query stats
+docker compose exec neo4j cypher-shell -u neo4j -p password123
+> :stats on
+> MATCH (n) RETURN count(n);
 
-// Search by type
-MATCH (n:Container) RETURN n
+# PostgreSQL query analysis
+docker compose exec postgres psql -U graphrag_user -d pentest_graphrag
+> EXPLAIN ANALYZE SELECT * FROM documents;
+```
 
-curl -X POST http://localhost:8000/tools/cve/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"cve_json": {
-    "containers": {
-        "cna": {
-            "affected": [
-                {
-                    "product": "n/a",
-                    "vendor": "n/a",
-                    "versions": [
-                        {
-                            "status": "affected",
-                            "version": "n/a"
-                        }
-                    ]
-                }
-            ],
-            "descriptions": [
-                {
-                    "lang": "en",
-                    "value": "ip_input.c in BSD-derived TCP/IP implementations allows remote attackers to cause a denial of service (crash or hang) via crafted packets."
-                }
-            ],
-            "problemTypes": [
-                {
-                    "descriptions": [
-                        {
-                            "description": "n/a",
-                            "lang": "en",
-                            "type": "text"
-                        }
-                    ]
-                }
-            ],
-            "providerMetadata": {
-                "dateUpdated": "2005-12-17T00:00:00.000Z",
-                "orgId": "8254265b-2729-46b6-b9e3-3dfca2d5bfca",
-                "shortName": "mitre"
-            },
-            "references": [
-                {
-                    "tags": [
-                        "x_refsource_CONFIRM"
-                    ],
-                    "url": "http://www.openbsd.org/errata23.html#tcpfix"
-                },
-                {
-                    "name": "5707",
-                    "tags": [
-                        "vdb-entry",
-                        "x_refsource_OSVDB"
-                    ],
-                    "url": "http://www.osvdb.org/5707"
-                }
-            ],
-            "x_legacyV4Record": {
-                "CVE_data_meta": {
-                    "ASSIGNER": "cve@mitre.org",
-                    "ID": "CVE-1999-0001",
-                    "STATE": "PUBLIC"
-                },
-                "affects": {
-                    "vendor": {
-                        "vendor_data": [
-                            {
-                                "product": {
-                                    "product_data": [
-                                        {
-                                            "product_name": "n/a",
-                                            "version": {
-                                                "version_data": [
-                                                    {
-                                                        "version_value": "n/a"
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                "vendor_name": "n/a"
-                            }
-                        ]
-                    }
-                },
-                "data_format": "MITRE",
-                "data_type": "CVE",
-                "data_version": "4.0",
-                "description": {
-                    "description_data": [
-                        {
-                            "lang": "eng",
-                            "value": "ip_input.c in BSD-derived TCP/IP implementations allows remote attackers to cause a denial of service (crash or hang) via crafted packets."
-                        }
-                    ]
-                },
-                "problemtype": {
-                    "problemtype_data": [
-                        {
-                            "description": [
-                                {
-                                    "lang": "eng",
-                                    "value": "n/a"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "references": {
-                    "reference_data": [
-                        {
-                            "name": "http://www.openbsd.org/errata23.html#tcpfix",
-                            "refsource": "CONFIRM",
-                            "url": "http://www.openbsd.org/errata23.html#tcpfix"
-                        },
-                        {
-                            "name": "5707",
-                            "refsource": "OSVDB",
-                            "url": "http://www.osvdb.org/5707"
-                        }
-                    ]
-                }
-            }
-        },
-        "adp": [
-            {
-                "providerMetadata": {
-                    "orgId": "af854a3a-2127-422b-91ae-364da2661108",
-                    "shortName": "CVE",
-                    "dateUpdated": "2024-08-01T16:03:04.917Z"
-                },
-                "title": "CVE Program Container",
-                "references": [
-                    {
-                        "tags": [
-                            "x_refsource_CONFIRM",
-                            "x_transferred"
-                        ],
-                        "url": "http://www.openbsd.org/errata23.html#tcpfix"
-                    },
-                    {
-                        "name": "5707",
-                        "tags": [
-                            "vdb-entry",
-                            "x_refsource_OSVDB",
-                            "x_transferred"
-                        ],
-                        "url": "http://www.osvdb.org/5707"
-                    }
-                ]
-            }
-        ]
-    },
-    "cveMetadata": {
-        "assignerOrgId": "8254265b-2729-46b6-b9e3-3dfca2d5bfca",
-        "assignerShortName": "mitre",
-        "cveId": "CVE-1999-0001",
-        "datePublished": "2000-02-04T05:00:00.000Z",
-        "dateReserved": "1999-06-07T00:00:00.000Z",
-        "dateUpdated": "2024-08-01T16:03:04.917Z",
-        "state": "PUBLISHED"
-    },
-    "dataType": "CVE_RECORD",
-    "dataVersion": "5.1"
-}}'
+### Resource Usage
+
+```bash
+# Monitor Docker stats
+docker stats
+
+# Check Neo4j memory
+docker compose exec neo4j df -h /data
+
+# Check Weaviate memory
+docker compose exec weaviate du -sh /var/lib/weaviate
+```
+
+---
+
+## 🔄 Data Management
+
+### Backup
+
+```bash
+# Backup PostgreSQL
+docker compose exec postgres pg_dump -U graphrag_user pentest_graphrag > backup.sql
+
+# Backup Neo4j
+docker compose exec neo4j bin/neo4j-admin database dump neo4j --to-path=/data/backups
+
+# Backup MinIO
+docker compose exec minio mc mirror minio/graphrag-bucket ./backup/minio
+```
+
+### Reset & Clean
+
+```bash
+# Stop and remove all containers & volumes
+docker compose down -v
+
+# Clean up all data
+docker system prune -a --volumes
+
+# Restart fresh
+docker compose up --build -d
+make bootstrap
+```
+
+### Data Import/Export
+
+```bash
+# Export Neo4j data
+docker compose exec neo4j cypher-shell -u neo4j -p password123 \
+  "MATCH (n) RETURN n" > graph_export.json
+
+# Import CVE data
+python scripts/batch_ingest_cve.py
+
+# Export PostgreSQL
+docker compose exec postgres pg_dump -U graphrag_user pentest_graphrag > db_export.sql
+```
+
+---
+
+## 🔧 Development Guide
+
+### Running Locally (Without Docker)
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run with local databases (pre-configured)
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+### Code Style & Linting
+
+```bash
+# Format code
+black app/ scripts/
+
+# Lint
+flake8 app/ --max-line-length=120
+
+# Type checking
+mypy app/ --ignore-missing-imports
+```
+
+### Adding New Router
+
+1. Create `app/api/v1/routers/new_router.py`:
+```python
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/new", tags=["New Feature"])
+
+@router.get("/endpoint")
+async def new_endpoint():
+    return {"status": "success"}
+```
+
+2. Add to `app/main.py`:
+```python
+from app.api.v1.routers.new_router import router as new_router
+app.include_router(new_router)
+```
+
+3. Test:
+```bash
+curl http://localhost:8000/new/endpoint
+```
+
+---
+
+## 📈 Benchmarking & Evaluation
+
+### Run Benchmark Suite
+
+```bash
+# Run full benchmark (5 scenarios, 3 modes, 3 runs each)
+python evaluation/runner.py
+
+# Output: evaluation/results/benchmark_results_YYYYMMDD_HHMMSS.csv
+```
+
+### Benchmark Metrics
+
+- **Precision@K**: Fraction of top-K results that are relevant
+- **Recall@K**: Fraction of all relevant results retrieved in top-K  
+- **MRR**: Mean Reciprocal Rank (position of first relevant result)
+- **NDCG@K**: Normalized Discounted Cumulative Gain
+- **Latency**: Query response time (ms)
+
+### Analyze Results
+
+```bash
+# View latest results
+ls -la evaluation/results/ | tail -5
+
+# Parse CSV
+pandas read_csv("evaluation/results/benchmark_results_*.csv")
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Environment Configuration
+
+```bash
+# Production .env
+APP_ENV=production
+LOG_LEVEL=WARNING
+
+# Database scaling
+POSTGRES_HOST=external-postgres.example.com
+NEO4J_URI=bolt://external-neo4j:7687
+
+# External cache
+REDIS_URL=redis://external-redis:6379
+
+# LLM (larger model)
+OLLAMA_MODEL=llama3.2:7b
+
+# Security
+ALLOWED_TARGETS=["api.example.com", "app.example.com"]
+MAX_TOOL_TIMEOUT=600
+```
+
+### Scaling Considerations
+
+- **LLM Bottleneck:** Single Ollama instance limits throughput
+  - Solution: Run multiple Ollama instances or use cloud LLM APIs
+  
+- **Graph Growth:** Neo4j memory can fill up with large graphs
+  - Solution: Archive old data, implement retention policies
+  
+- **Vector Indexing:** Weaviate scaling for large collections
+  - Solution: Use Weaviate cluster or sharding
+
+### Docker Swarm / Kubernetes
+
+```bash
+# Deploy with Docker Swarm
+docker stack deploy -c docker-compose.yml graphrag
+
+# Scale backend services
+docker service scale graphrag_backend=3
+```
+
+---
+
+## 📞 Support & Community
+
+- **Issues:** Báo cáo bugs trên GitHub Issues
+- **Discussions:** Thảo luận trên GitHub Discussions  
+- **Documentation:** Xem thêm `docs/` folder
+- **Contributing:** Pull requests được chào đón!
+
+---
+
+## 📄 License
+
+MIT License - Xem `LICENSE` file
+
+---
+
+**Version:** 0.2.0 (Phase 2 - Lab Stage)  
+**Last Updated:** April 2026  
+**Status:** ✅ Core pipeline complete | ⏳ Dashboard & full tool integration pending
+
+## 🤝 Contributing
+
+Chúng tôi hoan nghênh đóng góp! Vui lòng làm theo các bước:
+
+1. Fork repository
+2. Tạo feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push branch: `git push origin feature/amazing-feature`
+5. Tạo Pull Request
+
+---
+
+## 📚 Resource Links
+
+- **Neo4j Documentation:** https://neo4j.com/docs/
+- **Weaviate Docs:** https://weaviate.io/developers/weaviate
+- **LangChain/LangGraph:** https://docs.langchain.com/
+- **FastAPI:** https://fastapi.tiangolo.com/
+- **PostgreSQL:** https://www.postgresql.org/docs/
+- **MITRE CVE:** https://cve.mitre.org/
+- **MITRE CWE:** https://cwe.mitre.org/
