@@ -1,38 +1,20 @@
-"""Workflow Router - Phase 8."""
+"""Workflow Router - Pentest orchestration entrypoint."""
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.agents.langgraph.graph import graph
+
+from app.domain.schemas.pentest import PentestWorkflowRequest, PentestWorkflowResponse
+from app.services.pentest_orchestrator import PentestOrchestratorService
 
 router = APIRouter(prefix="/workflow", tags=["Workflow"])
 
-class WorkflowRequest(BaseModel):
-    query: str
+orchestrator_service = PentestOrchestratorService()
 
-@router.post("/run")
-async def run_workflow(request: WorkflowRequest):
-    """Chạy full multi-agent workflow."""
+
+@router.post("/run", response_model=PentestWorkflowResponse)
+@router.post("/pentest/run", response_model=PentestWorkflowResponse)
+async def run_workflow(request: PentestWorkflowRequest):
+    """Run the end-to-end pentest loop over the supplied evidence and query."""
     try:
-        initial_state = {
-            "query": request.query,
-            "current_step": "start",
-            "ingested_documents": [],
-            "extracted_chunks": [],
-            "graph_context": {},
-            "retrieval_results": [],
-            "tool_results": [],
-            "report_draft": None,
-            "human_approval": False,
-            "final_answer": None,
-            "error": None
-        }
-
-        result = await graph.ainvoke(initial_state)
-        return {
-            "status": "success",
-            "final_answer": result.get("final_answer"),
-            "retrieval_count": len(result.get("retrieval_results", [])),
-            "steps_completed": result.get("current_step")
-        }
+        return await orchestrator_service.run_pipeline(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Workflow error: {str(e)}")
