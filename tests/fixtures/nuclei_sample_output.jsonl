@@ -1,0 +1,55 @@
+{
+  "template-id": "http-missing-headers",
+  "type": "http",
+  "host": "https://example.com",
+  "matched-at": "https://example.com/",
+  "severity": "high",
+  "cve-id": "CVE-2021-12345",
+  "cwe-id": "CWE-693",
+  "template-url": "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/misconfiguration/http-missing-headers.yaml",
+  "matcher-name": "Missing Headers",
+  "timestamp": "2026-04-28T12:00:00.000000Z",
+  "info": {
+    "description": "Detects missing security headers in HTTP responses"
+  },
+  "extracted-results": {
+    "Missing": "X-Frame-Options, X-Content-Type-Options"
+  }
+}
+{
+  "template-id": "sql-injection-basic",
+  "type": "http",
+  "host": "https://vulnerable-app.local",
+  "matched-at": "https://vulnerable-app.local/search.php?id=1",
+  "severity": "critical",
+  "cve-id": "CVE-2024-1234",
+  "cwe-id": "CWE-89",
+  "template-url": "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/sqli/sql-injection-basic.yaml",
+  "matcher-name": "SQL Error",
+  "timestamp": "2026-04-28T12:01:00.000000Z",
+  "info": {
+    "description": "Detects basic SQL injection vulnerabilities"
+  },
+  "extracted-results": {
+    "SQL Error": "syntax error"
+  }
+}
+{
+  "template-id": "cve-2024-9999-rce",
+  "type": "http",
+  "host": "https://internal-service.local:8080",
+  "matched-at": "https://internal-service.local:8080/api/execute",
+  "severity": "critical",
+  "cve-id": "CVE-2024-9999",
+  "cwe-id": "CWE-78,CWE-94",
+  "template-url": "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2024/cve-2024-9999-rce.yaml",
+  "matcher-name": "RCE Detected",
+  "timestamp": "2026-04-28T12:02:00.000000Z",
+  "info": {
+    "description": "Remote Code Execution in service"
+  },
+  "extracted-results": {
+    "Command": "id",
+    "Output": "uid=0(root) gid=0(root) groups=0(root)"
+  }
+}
