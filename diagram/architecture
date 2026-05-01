@@ -1,0 +1,77 @@
+graph TB
+    subgraph "Client Layer"
+        UI[Web UI / API Clients]
+    end
+    
+    subgraph "API Gateway (FastAPI Port 8000)"
+        AUTH[Auth Middleware<br/>JWT + RBAC]
+        PERM[Permission Middleware]
+        
+        subgraph "Routers"
+            INGEST[Ingest Router<br/>Document Upload]
+            EXTRACT[Extract Router<br/>Entity Extraction]
+            GRAPH[Graph Router<br/>Neo4j Operations]
+            RETRIEVE[Retrieve Router<br/>Hybrid Search]
+            WORKFLOW[Workflow Router<br/>Multi-Agent]
+            TOOLS[Tools Router<br/>CVE Analysis]
+            DASHBOARD[Dashboard Router<br/>Metrics]
+            BATCH[Batch Router<br/>Bulk Operations]
+            EXPORT[Export/Import Router<br/>Data Transfer]
+            AUTH_R[Auth Router<br/>Login/Register]
+        end
+    end
+    
+    subgraph "Async Processing (Celery + Redis)"
+        CELERY[Celery Workers<br/>Background Tasks]
+        REDIS[(Redis<br/>6379)]
+    end
+    
+    subgraph "Data Storage Layer"
+        POSTGRES[(PostgreSQL<br/>5432<br/>Metadata)]
+        NEO4J[(Neo4j<br/>7687<br/>Knowledge Graph)]
+        WEAVIATE[(Weaviate<br/>8080<br/>Vector DB)]
+        MINIO[(MinIO<br/>9000<br/>Documents)]
+    end
+    
+    subgraph "AI/ML Layer"
+        OLLAMA[Ollama<br/>11434<br/>Local LLM]
+    end
+    
+    UI --> AUTH
+    AUTH --> PERM
+    PERM --> INGEST
+    PERM --> EXTRACT
+    PERM --> GRAPH
+    PERM --> RETRIEVE
+    PERM --> WORKFLOW
+    PERM --> TOOLS
+    PERM --> DASHBOARD
+    PERM --> BATCH
+    PERM --> EXPORT
+    PERM --> AUTH_R
+    
+    INGEST --> CELERY
+    EXTRACT --> CELERY
+    GRAPH --> CELERY
+    BATCH --> CELERY
+    
+    CELERY --> REDIS
+    
+    INGEST --> POSTGRES
+    EXTRACT --> POSTGRES
+    GRAPH --> POSTGRES
+    
+    GRAPH --> NEO4J
+    RETRIEVE --> NEO4J
+    RETRIEVE --> WEAVIATE
+    
+    INGEST --> MINIO
+    EXTRACT --> MINIO
+    
+    EXTRACT --> OLLAMA
+    WORKFLOW --> OLLAMA
+    
+    style AUTH fill:#e1f5fe
+    style PERM fill:#e1f5fe
+    style GRAPH fill:#fff3e0
+    style RETRIEVE fill:#fff3e0

@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant Ollama
+    participant Celery
+    participant PostgreSQL
+    
+    Client->>FastAPI: POST /extract/entities (document_id)
+    FastAPI->>PostgreSQL: Get document chunks
+    FastAPI->>Celery: Queue extraction task
+    Celery->>Ollama: Extract entities/relationships
+    Celery->>PostgreSQL: Save extraction results
+    Celery->>FastAPI: Task completion callback
+    FastAPI->>Client: Return extraction data

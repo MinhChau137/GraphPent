@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant Neo4j
+    participant Celery
+    
+    Client->>FastAPI: POST /graph/upsert (extraction_data)
+    FastAPI->>Celery: Queue graph upsert task
+    Celery->>Neo4j: Create/update nodes & relationships
+    Note over Neo4j: Label separation:<br/>:CVE/:CWE (knowledge)<br/>:DiscoveredVulnerability (findings)
+    Celery->>FastAPI: Task completion callback
+    
+    Client->>FastAPI: POST /graph/hybrid-search (query)
+    FastAPI->>Neo4j: Vector + Graph search
+    FastAPI->>FastAPI: Fusion reranking
+    FastAPI->>Client: Return ranked results

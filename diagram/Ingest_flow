@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant MinIO
+    participant Celery
+    participant PostgreSQL
+    participant Weaviate
+    
+    Client->>FastAPI: POST /ingest/document (file upload)
+    FastAPI->>MinIO: Store document
+    FastAPI->>PostgreSQL: Save metadata
+    FastAPI->>Celery: Queue chunking task
+    Celery->>MinIO: Read document
+    Celery->>Celery: Chunk text (recursive/semantic)
+    Celery->>Weaviate: Create vector embeddings
+    Celery->>PostgreSQL: Update chunk metadata
+    Celery->>FastAPI: Task completion callback

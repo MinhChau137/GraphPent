@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Client
+    participant AuthMiddleware
+    participant PermissionMiddleware
+    participant FastAPI
+    participant PostgreSQL
+    
+    Client->>AuthMiddleware: Request with JWT
+    AuthMiddleware->>AuthMiddleware: Validate JWT token
+    AuthMiddleware->>PermissionMiddleware: Check RBAC permissions
+    PermissionMiddleware->>PostgreSQL: Verify user roles
+    PermissionMiddleware->>FastAPI: Allow/deny access
+    FastAPI->>Client: Response or 403 Forbidden

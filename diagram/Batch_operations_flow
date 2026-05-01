@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant Celery
+    participant Redis
+    
+    Client->>FastAPI: POST /batch/ingest (file_list)
+    FastAPI->>Celery: Create batch job
+    Celery->>Redis: Track job progress
+    loop For each file
+        Celery->>Celery: Process individual file
+    end
+    Celery->>Redis: Update job status
+    Client->>FastAPI: GET /batch/status (job_id)
+    FastAPI->>Redis: Get job progress
+    FastAPI->>Client: Return status/results

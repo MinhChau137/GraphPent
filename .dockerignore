@@ -68,7 +68,5 @@ setup.cfg
 node_modules/
 npm-debug.log
 
-# Keep only what's needed for app to run
-# app/
-# requirements.txt
-# scripts/
+# IMPORTANT: Keep .env for Docker (needed for settings)
+# .env is NOT in this list, so it WILL be copied

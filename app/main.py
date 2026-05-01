@@ -14,6 +14,14 @@ from app.api.v1.routers.retrieve import router as retrieve_router
 from app.api.v1.routers.workflow import router as workflow_router  # Enabled  
 from app.api.v1.routers.tools import router as tools_router
 from app.api.v1.routers.dashboard import router as dashboard_router
+from app.api.v1.routers.nuclei import router as nuclei_router
+from app.api.v1.routers.job_queue import router as job_queue_router
+from app.api.v1.routers.websocket import router as websocket_router
+from app.api.v1.routers.search import router as search_router
+from app.api.v1.routers.auth import router as auth_router  # Phase 5.4 - Authentication
+from app.core.auth_middleware import AuthMiddleware, PermissionMiddleware  # Phase 5.4 - Auth middleware
+from app.api.v1.routers.batch import router as batch_router  # Phase 5.5 - Batch Operations
+from app.api.v1.routers.export_import import router as export_import_router  # Phase 5.6 - Export/Import
 # Setup logger ngay khi import
 setup_logger(settings.LOG_LEVEL)
 
@@ -41,6 +49,18 @@ app.include_router(retrieve_router)
 app.include_router(workflow_router)  # Enabled 
 app.include_router(tools_router)  # Enabled - CVE-focused tools 
 app.include_router(dashboard_router)
+app.include_router(nuclei_router)  # Phase 4 - Nuclei API endpoints
+app.include_router(job_queue_router)  # Phase 5.1 - Async Job Queue
+app.include_router(websocket_router)  # Phase 5.2 - WebSocket real-time updates
+app.include_router(search_router)  # Phase 5.3 - Advanced filtering with Elasticsearch
+app.include_router(auth_router)  # Phase 5.4 - Authentication & Authorization
+app.include_router(batch_router)  # Phase 5.5 - Batch Operations
+app.include_router(export_import_router)  # Phase 5.6 - Export/Import
+
+# Add authentication middleware (Phase 5.4)
+app.add_middleware(PermissionMiddleware)
+app.add_middleware(AuthMiddleware)
+
 # CORS lab
 app.add_middleware(
     CORSMiddleware,
@@ -117,7 +137,7 @@ async def health_check():
         "phase": "2",
         "app_env": settings.APP_ENV,
         "log_level": settings.LOG_LEVEL,
-        "allowed_targets_count": len(settings.ALLOWED_TARGETS),
+        "allowed_targets_count": len(settings.ALLOWED_TARGETS.split(",")),
         "services": ["postgres", "redis", "neo4j", "weaviate", "minio"],
         "message": "FastAPI skeleton + config + logging + security ready. Phase 3 sẽ bootstrap DBs."
     }
