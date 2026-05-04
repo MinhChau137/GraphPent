@@ -86,13 +86,15 @@ class HybridRetrieverService:
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def hybrid_retrieve(
-        self, 
-        query: str, 
-        limit: int = 15, 
-        alpha: float = 0.7,
+        self,
+        query: str,
+        limit: int = 15,
+        alpha: float = None,   # None → read from settings.RRF_ALPHA
         mode: str = "hybrid",
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> List[Dict]:
+        if alpha is None:
+            alpha = getattr(settings, "RRF_ALPHA", 0.7)
         """
         Hybrid retrieval with 3 modes:
         - mode="hybrid" (alpha=0.7): vector 70% + graph 30%
@@ -217,12 +219,14 @@ class HybridRetrieverService:
             raise
 
     async def _fusion_rerank_rrf(
-        self, 
-        vector_results: List[Dict], 
-        graph_results: List[Dict], 
+        self,
+        vector_results: List[Dict],
+        graph_results: List[Dict],
         alpha: float = 0.7,
-        k: float = 60.0
+        k: float = None,   # None → read from settings.RRF_K
     ) -> List[Dict]:
+        if k is None:
+            k = float(getattr(settings, "RRF_K", 60.0))
         """
         RRF (Reciprocal Rank Fusion) algorithm for fusion.
         Formula: score = 1 / (k + rank)
@@ -271,19 +275,25 @@ class HybridRetrieverService:
                     "graph_score": graph_score,
                 }
 
-        # Calculate final scores using weighted RRF
+        # Normalize graph_score to [0,1] so it's comparable with vector_score (cosine 0-1)
+        max_graph = max((v["graph_score"] for v in combined.values()), default=1.0)
+        max_graph = max(max_graph, 1e-9)
+        for item in combined.values():
+            item["graph_score_norm"] = item["graph_score"] / max_graph
+
+        # Calculate final scores: pure RRF (rank-based, already normalized)
         for result_id, item in combined.items():
-            # Weighted fusion
+            # RRF fusion — only rank positions, no raw score bias
             final_rrf = (
                 item["vector_rrf"] * alpha +
                 item["graph_rrf"] * (1 - alpha)
             )
-            # Also include weighted scores
+            # Normalized score fusion
             final_score = (
-                item["vector_score"] * alpha +
-                item["graph_score"] * (1 - alpha)
+                item["vector_score"]      * alpha +
+                item["graph_score_norm"]  * (1 - alpha)
             )
-            # Combined (RRF + score blend)
+            # Final = average of rank-based RRF and normalized score blend
             item["final_score"] = (final_rrf + final_score) / 2.0
             item["final_rrf"] = final_rrf
 

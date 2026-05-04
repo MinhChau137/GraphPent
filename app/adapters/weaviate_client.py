@@ -2,23 +2,50 @@
 
 import weaviate
 from weaviate.classes.query import MetadataQuery
-from typing import List, Dict
+from typing import List, Dict, Optional
 from app.config.settings import settings
 from app.core.logger import logger
 import asyncio
 
-class WeaviateAdapter:
-    def __init__(self):
+# Module-level shared client — created once, reused by all WeaviateAdapter instances.
+_shared_weaviate_client = None
+
+
+def _get_shared_weaviate_client():
+    global _shared_weaviate_client
+    if _shared_weaviate_client is None:
         try:
-            self.client = weaviate.connect_to_local(
-                host="weaviate",
-                port=8080,
-                grpc_port=50051
+            weaviate_host = getattr(settings, "WEAVIATE_HOST", "weaviate")
+            weaviate_port = int(getattr(settings, "WEAVIATE_PORT", 8080))
+            weaviate_grpc = int(getattr(settings, "WEAVIATE_GRPC_PORT", 50051))
+            _shared_weaviate_client = weaviate.connect_to_local(
+                host=weaviate_host,
+                port=weaviate_port,
+                grpc_port=weaviate_grpc,
             )
-            self._ensure_collection()
+            logger.info("Weaviate shared client created")
         except Exception as e:
             logger.error(f"Failed to connect to Weaviate: {e}")
-            self.client = None
+            _shared_weaviate_client = None
+    return _shared_weaviate_client
+
+
+def close_weaviate_client() -> None:
+    """Call once on application shutdown."""
+    global _shared_weaviate_client
+    if _shared_weaviate_client is not None:
+        try:
+            _shared_weaviate_client.close()
+        except Exception:
+            pass
+        _shared_weaviate_client = None
+
+
+class WeaviateAdapter:
+    def __init__(self):
+        self.client = _get_shared_weaviate_client()
+        if self.client:
+            self._ensure_collection()
 
     def _ensure_collection(self):
         """Ensure docs_chunks collection exists."""
@@ -38,8 +65,8 @@ class WeaviateAdapter:
             logger.warning("Could not ensure collection", error=str(e))
 
     def close(self):
-        if self.client:
-            self.client.close()
+        # Shared client — use close_weaviate_client() at app shutdown instead.
+        pass
 
     async def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding using Ollama."""

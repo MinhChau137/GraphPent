@@ -1,0 +1,119 @@
+{
+  "benchmark": "L5_GNN",
+  "timestamp": "20260503_190935",
+  "compute_scores": {
+    "pagerank": {
+      "method": "degree_fallback",
+      "nodes_updated": 3049
+    },
+    "betweenness": {
+      "method": "skipped",
+      "nodes_updated": 0
+    },
+    "blended": {
+      "nodes_updated": 3049
+    },
+    "latency_ms": 59.606000082567334
+  },
+  "node_query_latency_ms": 31.0,
+  "total_nodes_fetched": 100,
+  "cvss_calibration": {
+    "cve_nodes_with_cvss": 89,
+    "spearman_rho": 0.9971,
+    "tier_accuracy": 0.9663,
+    "tier_correct": 86,
+    "tier_total": 89,
+    "high_cve_precision_at_20": 0.85,
+    "high_cve_precision_at_50": 0.86
+  },
+  "score_distribution": {
+    "total_scored_nodes": 100,
+    "out_of_bounds_count": 0,
+    "risk_boundedness": 1.0,
+    "score_min": 0.6093,
+    "score_max": 0.8701,
+    "score_mean": 0.7124,
+    "score_stdev": 0.0636,
+    "tier_CRITICAL": 25,
+    "tier_HIGH": 75,
+    "tier_MEDIUM": 0,
+    "tier_LOW": 0,
+    "tier_monotone_violations": 1
+  },
+  "known_node_recall": {
+    "known_nodes_in_top20": 1,
+    "known_nodes_in_top50": 2,
+    "known_nodes_in_top100": 5,
+    "recall_at_20": 0.2,
+    "recall_at_50": 0.4,
+    "recall_at_100": 1.0,
+    "missing_from_top100": []
+  },
+  "attack_paths": [
+    {
+      "label": "SQLi->CVE",
+      "source_id": "cwe-89",
+      "target_label": "CVE",
+      "max_hops": 3,
+      "paths_found": 10,
+      "valid_paths": 10,
+      "validity_rate": 1.0,
+      "coverage": 1,
+      "latency_ms": 134.8,
+      "top_path_risk": 0.4006,
+      "min_hops": 2
+    },
+    {
+      "label": "XSS->CVE",
+      "source_id": "cwe-79",
+      "target_label": "CVE",
+      "max_hops": 3,
+      "paths_found": 10,
+      "valid_paths": 10,
+      "validity_rate": 1.0,
+      "coverage": 1,
+      "latency_ms": 68.6,
+      "top_path_risk": 0.8011,
+      "min_hops": 1
+    },
+    {
+      "label": "Auth->CVE",
+      "source_id": "cwe-287",
+      "target_label": "CVE",
+      "max_hops": 4,
+      "paths_found": 10,
+      "valid_paths": 10,
+      "validity_rate": 1.0,
+      "coverage": 1,
+      "latency_ms": 624.9,
+      "top_path_risk": 0.7931,
+      "min_hops": 1
+    },
+    {
+      "label": "CSRF->CVE",
+      "source_id": "cwe-352",
+      "target_label": "CVE",
+      "max_hops": 3,
+      "paths_found": 10,
+      "valid_paths": 10,
+      "validity_rate": 1.0,
+      "coverage": 1,
+      "latency_ms": 56.1,
+      "top_path_risk": 0.4006,
+      "min_hops": 2
+    },
+    {
+      "label": "SQLi->Weakness",
+      "source_id": "cwe-89",
+      "target_label": "Weakness",
+      "max_hops": 2,
+      "paths_found": 10,
+      "valid_paths": 10,
+      "validity_rate": 1.0,
+      "coverage": 1,
+      "latency_ms": 23.1,
+      "top_path_risk": 0.8115,
+      "min_hops": 1
+    }
+  ]
+}

@@ -68,6 +68,40 @@ class Settings(BaseSettings):
     NUCLEI_ENDPOINT: str = "http://nuclei:8080"
     NUCLEI_TIMEOUT: int = 300
 
+    # Weaviate connection (Phase 10 fix)
+    WEAVIATE_HOST: str = "weaviate"
+    WEAVIATE_PORT: int = 8080
+    WEAVIATE_GRPC_PORT: int = 50051
+
+    # ── Tunable parameters (Phase 10-13) ──────────────────────────────────
+    # RRF Retrieval
+    RRF_ALPHA: float = 0.7      # 0.0=pure graph  1.0=pure vector
+    RRF_K: float = 60.0         # RRF constant (higher→smoother rank diff)
+
+    # LLM Extraction confidence gates
+    ENTITY_CONFIDENCE_THRESHOLD: float = 0.85
+    RELATION_CONFIDENCE_THRESHOLD: float = 0.75
+
+    # KG Completion (Phase 11)
+    KG_MIN_CONFIDENCE: float = 0.65
+    KG_MAX_DEGREE: int = 2      # entities with ≤ this many edges get completed
+
+    # GNN Risk weights (must sum to 1.0) (Phase 12)
+    # w_sev=0.80: CVSS/severity là ground truth chính trong pentest context
+    # w_pr=0.10: graph centrality dùng làm tie-breaker giữa các nodes cùng severity
+    GNN_W_PAGERANK: float = 0.10
+    GNN_W_SEVERITY: float = 0.80
+    GNN_W_BETWEENNESS: float = 0.10
+
+    # Workflow feedback loop (Phase 10)
+    MAX_LOOP_ITERATIONS: int = 3
+
+    # Nmap collection (Phase 10)
+    NMAP_OPTIONS: str = "-sV,-sC,--top-ports,1000"   # comma-separated flags
+
+    # Attack-path depth (Phase 12)
+    ATTACK_PATH_MAX_HOPS: int = 4
+
     @property
     def postgres_dsn(self) -> str:
         """PostgreSQL DSN cho SQLAlchemy."""

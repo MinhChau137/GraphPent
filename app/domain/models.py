@@ -54,7 +54,12 @@ class EntityType(str, Enum):
     # Detection/Monitoring
     DETECTION_METHOD = "DetectionMethod"    # How to detect the issue
     TEST_CASE = "TestCase"                 # Test case for the vulnerability
-    
+
+    # Phase 10: Network topology (from Nmap)
+    HOST = "Host"                          # Network host (IP address)
+    PORT = "Port"                          # Open network port
+    SERVICE = "Service"                    # Service running on a port
+
 
 # ============================================================================
 # RELATIONSHIP TYPE DEFINITIONS
@@ -97,6 +102,12 @@ class RelationType(str, Enum):
     PRECEDES = "PRECEDES"                        # Step1 --[PRECEDES]--> Step2
     ENABLES = "ENABLES"                          # Weakness1 --[ENABLES]--> Weakness2
     REQUIRES = "REQUIRES"                        # Attack --[REQUIRES]--> Capability
+
+    # Phase 10: Network topology relationships (from Nmap)
+    HAS_PORT = "HAS_PORT"                        # Host --[HAS_PORT]--> Port
+    RUNS_SERVICE = "RUNS_SERVICE"                # Port --[RUNS_SERVICE]--> Service
+    EXPOSES = "EXPOSES"                          # Host --[EXPOSES]--> Service (shortcut)
+    HOSTED_ON = "HOSTED_ON"                      # Vulnerability --[HOSTED_ON]--> Host
 
 
 # ============================================================================

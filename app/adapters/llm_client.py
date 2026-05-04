@@ -516,4 +516,17 @@ Create relationships aggressively - allow external references:
 
         except Exception as e:
             logger.error("CVE LLM extraction failed", chunk_id=chunk_id, error=str(e), error_type=type(e).__name__)
-            return ExtractionResult(error=str(e), chunk_id=chunk_id)
+
+    # ==================== General-purpose completion (Phase 11+) ====================
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=3, max=20))
+    async def _raw_completion(self, prompt: str, temperature: float = 0.0) -> str:
+        """Send a raw prompt to the LLM and return the response text.
+        Used by KGCompletionService and GNNService for open-ended queries.
+        """
+        response = await self.client.chat(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            options={"temperature": temperature},
+        )
+        return response.message.content or ""

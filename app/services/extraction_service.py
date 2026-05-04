@@ -13,6 +13,9 @@ class ExtractionService:
     def __init__(self):
         self.llm = LLMClient()
         self.graph_service = GraphService()
+        from app.config.settings import settings
+        self._entity_threshold = getattr(settings, "ENTITY_CONFIDENCE_THRESHOLD", 0.85)
+        self._relation_threshold = getattr(settings, "RELATION_CONFIDENCE_THRESHOLD", 0.75)
 
     def validate_entities(self, entities: list) -> list:
         """Validate entities: meaningful names + confidence >= 0.85 (STRICT).
@@ -35,8 +38,8 @@ class ExtractionService:
             # STEP 1: Check confidence threshold (STRICT)
             provenance = entity.get("provenance", {})
             confidence = provenance.get("confidence", 0.85)
-            if confidence < 0.85:
-                logger.debug(f"❌ Entity {entity_id}: confidence={confidence:.2f} < 0.85")
+            if confidence < self._entity_threshold:
+                logger.debug(f"❌ Entity {entity_id}: confidence={confidence:.2f} < {self._entity_threshold}")
                 continue  # Skip low-confidence entities
             
             # STEP 2: Validate meaningful names (existing logic)
@@ -88,8 +91,8 @@ class ExtractionService:
             provenance = relation.get("provenance", {})
             confidence = provenance.get("confidence", 0.75)
             
-            if confidence < 0.75:
-                rejected.append(f"Rel {relation_id}: confidence={confidence:.2f} < 0.75")
+            if confidence < self._relation_threshold:
+                rejected.append(f"Rel {relation_id}: confidence={confidence:.2f} < {self._relation_threshold}")
                 continue
             
             # VALIDATION 2: Require valid, non-empty IDs (no unknown placeholders)
@@ -194,78 +197,40 @@ class ExtractionService:
         """Extract entities & relations từ tất cả chunks của một document."""
         from sqlalchemy import select
         from app.adapters.postgres import Chunk, AsyncSessionLocal
-        
-        async with AsyncSessionLocal() as session:
-            # Lấy tất cả chunk IDs của document
-            result = await session.execute(select(Chunk.id).where(Chunk.document_id == document_id))
-            chunk_ids = [row[0] for row in result.fetchall()]
-        
-        logger.info(f"Starting batch extraction for document {document_id} with {len(chunk_ids)} chunks")
-        
-        total_entities = 0
-        total_relations = 0
-        successful_chunks = 0
-        
-        for i, chunk_id in enumerate(chunk_ids):
-            try:
-                logger.info(f"Processing chunk {i+1}/{len(chunk_ids)}: {chunk_id}")
-                result = await self.extract_from_chunk(chunk_id)
-                
-                if not result.error:
-                    total_entities += len(result.entities)
-                    total_relations += len(result.relations)
-                    successful_chunks += 1
-                else:
-                    logger.error(f"Failed to extract chunk {chunk_id}: {result.error}")
-                    
-            except Exception as e:
-                logger.error(f"Exception extracting chunk {chunk_id}: {str(e)}")
-        
-        logger.info(f"Batch extraction completed: {successful_chunks}/{len(chunk_ids)} chunks successful, {total_entities} entities, {total_relations} relations")
-        return {
-            "document_id": document_id,
-            "total_chunks": len(chunk_ids),
-            "successful_chunks": successful_chunks,
-            "total_entities": total_entities,
-            "total_relations": total_relations
-        }
 
-    async def extract_all_chunks(self, document_id: int) -> dict:
-        """Extract entities & relations từ tất cả chunks của một document."""
-        from sqlalchemy import select
-        from app.adapters.postgres import Chunk, AsyncSessionLocal
-        
         async with AsyncSessionLocal() as session:
-            # Lấy tất cả chunk IDs của document
             result = await session.execute(select(Chunk.id).where(Chunk.document_id == document_id))
             chunk_ids = [row[0] for row in result.fetchall()]
-        
+
         logger.info(f"Starting batch extraction for document {document_id} with {len(chunk_ids)} chunks")
-        
+
         total_entities = 0
         total_relations = 0
         successful_chunks = 0
-        
+
         for i, chunk_id in enumerate(chunk_ids):
             try:
                 logger.info(f"Processing chunk {i+1}/{len(chunk_ids)}: {chunk_id}")
-                result = await self.extract_from_chunk(chunk_id)
-                
-                if not result.error:
-                    total_entities += len(result.entities)
-                    total_relations += len(result.relations)
+                chunk_result = await self.extract_from_chunk(chunk_id)
+
+                if not chunk_result.error:
+                    total_entities += len(chunk_result.entities)
+                    total_relations += len(chunk_result.relations)
                     successful_chunks += 1
                 else:
-                    logger.error(f"Failed to extract chunk {chunk_id}: {result.error}")
-                    
+                    logger.error(f"Failed to extract chunk {chunk_id}: {chunk_result.error}")
+
             except Exception as e:
                 logger.error(f"Exception extracting chunk {chunk_id}: {str(e)}")
-        
-        logger.info(f"Batch extraction completed: {successful_chunks}/{len(chunk_ids)} chunks successful, {total_entities} entities, {total_relations} relations")
+
+        logger.info(
+            f"Batch extraction completed: {successful_chunks}/{len(chunk_ids)} chunks, "
+            f"{total_entities} entities, {total_relations} relations"
+        )
         return {
             "document_id": document_id,
             "total_chunks": len(chunk_ids),
             "successful_chunks": successful_chunks,
             "total_entities": total_entities,
-            "total_relations": total_relations
+            "total_relations": total_relations,
         }

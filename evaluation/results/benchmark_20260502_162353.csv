@@ -1,0 +1,56 @@
+scenario_id,scenario_name,query,mode,alpha,latency_avg_ms,P@10,R@10,MRR,NDCG@10,relevant_count
+1,Retrieval Accuracy,SQL injection,B1_vector_only,1.0,93.2,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,SQL injection,B2_graph_only,0.0,24.3,0.1,0.0909,0.25,0.0948,11
+1,Retrieval Accuracy,SQL injection,G_0.3,0.3,75.8,0.1,0.0909,0.25,0.0948,11
+1,Retrieval Accuracy,SQL injection,G_0.5,0.5,85.6,0.1,0.0909,0.25,0.0948,11
+1,Retrieval Accuracy,SQL injection,G_0.7,0.7,77.1,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,XSS,B1_vector_only,1.0,107.4,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,XSS,B2_graph_only,0.0,20.4,0.1,0.0909,0.1429,0.0734,11
+1,Retrieval Accuracy,XSS,G_0.3,0.3,76.3,0.1,0.0909,0.1429,0.0734,11
+1,Retrieval Accuracy,XSS,G_0.5,0.5,81.3,0.1,0.0909,0.1429,0.0734,11
+1,Retrieval Accuracy,XSS,G_0.7,0.7,74.9,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,IDOR,B1_vector_only,1.0,71.9,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,IDOR,B2_graph_only,0.0,27.9,0.1,0.0909,1.0,0.2201,11
+1,Retrieval Accuracy,IDOR,G_0.3,0.3,79.3,0.1,0.0909,1.0,0.2201,11
+1,Retrieval Accuracy,IDOR,G_0.5,0.5,73.2,0.1,0.0909,1.0,0.2201,11
+1,Retrieval Accuracy,IDOR,G_0.7,0.7,73.8,0.0,0.0,0.0,0.0,11
+1,Retrieval Accuracy,CSRF,B1_vector_only,1.0,71.4,0.0,0.0,0.0,0.0,10
+1,Retrieval Accuracy,CSRF,B2_graph_only,0.0,18.8,0.1,0.1,1.0,0.2201,10
+1,Retrieval Accuracy,CSRF,G_0.3,0.3,73.3,0.1,0.1,1.0,0.2201,10
+1,Retrieval Accuracy,CSRF,G_0.5,0.5,75.0,0.1,0.1,1.0,0.2201,10
+1,Retrieval Accuracy,CSRF,G_0.7,0.7,73.2,0.0,0.0,0.0,0.0,10
+1,Retrieval Accuracy,authentication,B1_vector_only,1.0,78.2,0.0,0.0,0.0,0.0,12
+1,Retrieval Accuracy,authentication,B2_graph_only,0.0,21.6,0.3,0.25,1.0,0.3836,12
+1,Retrieval Accuracy,authentication,G_0.3,0.3,78.7,0.3,0.25,1.0,0.3836,12
+1,Retrieval Accuracy,authentication,G_0.5,0.5,75.8,0.3,0.25,1.0,0.3836,12
+1,Retrieval Accuracy,authentication,G_0.7,0.7,81.3,0.0,0.0,0.0,0.0,12
+2,CVE Linking Accuracy,SQL injection,B1_vector_only,1.0,76.4,0.0,0.0,0.0,0.0,11
+2,CVE Linking Accuracy,SQL injection,B2_graph_only,0.0,21.2,0.1,0.0909,0.25,0.0948,11
+2,CVE Linking Accuracy,SQL injection,G_0.3,0.3,73.7,0.1,0.0909,0.25,0.0948,11
+2,CVE Linking Accuracy,SQL injection,G_0.5,0.5,79.4,0.1,0.0909,0.25,0.0948,11
+2,CVE Linking Accuracy,SQL injection,G_0.7,0.7,76.3,0.0,0.0,0.0,0.0,11
+2,CVE Linking Accuracy,CWE,B1_vector_only,1.0,70.6,0.0,0.0,0.0,0.0,6
+2,CVE Linking Accuracy,CWE,B2_graph_only,0.0,22.4,0.0,0.0,0.0,0.0,6
+2,CVE Linking Accuracy,CWE,G_0.3,0.3,74.8,0.0,0.0,0.0,0.0,6
+2,CVE Linking Accuracy,CWE,G_0.5,0.5,77.9,0.0,0.0,0.0,0.0,6
+2,CVE Linking Accuracy,CWE,G_0.7,0.7,74.5,0.0,0.0,0.0,0.0,6
+3,Finding Correlation,SQL injection,B1_vector_only,1.0,76.3,0.0,0.0,0.0,0.0,11
+3,Finding Correlation,SQL injection,B2_graph_only,0.0,21.6,0.1,0.0909,0.25,0.0948,11
+3,Finding Correlation,SQL injection,G_0.3,0.3,73.8,0.1,0.0909,0.25,0.0948,11
+3,Finding Correlation,SQL injection,G_0.5,0.5,77.1,0.1,0.0909,0.25,0.0948,11
+3,Finding Correlation,SQL injection,G_0.7,0.7,79.8,0.0,0.0,0.0,0.0,11
+3,Finding Correlation,XSS,B1_vector_only,1.0,71.5,0.0,0.0,0.0,0.0,11
+3,Finding Correlation,XSS,B2_graph_only,0.0,19.7,0.1,0.0909,0.1429,0.0734,11
+3,Finding Correlation,XSS,G_0.3,0.3,73.5,0.1,0.0909,0.1429,0.0734,11
+3,Finding Correlation,XSS,G_0.5,0.5,92.9,0.1,0.0909,0.1429,0.0734,11
+3,Finding Correlation,XSS,G_0.7,0.7,91.6,0.0,0.0,0.0,0.0,11
+4,Multi-hop Reasoning,authentication,B1_vector_only,1.0,84.0,0.0,0.0,0.0,0.0,12
+4,Multi-hop Reasoning,authentication,B2_graph_only,0.0,26.0,0.3,0.25,1.0,0.3836,12
+4,Multi-hop Reasoning,authentication,G_0.3,0.3,107.5,0.3,0.25,1.0,0.3836,12
+4,Multi-hop Reasoning,authentication,G_0.5,0.5,84.4,0.3,0.25,1.0,0.3836,12
+4,Multi-hop Reasoning,authentication,G_0.7,0.7,90.7,0.0,0.0,0.0,0.0,12
+5,Remediation Quality,SQL injection,B1_vector_only,1.0,80.8,0.0,0.0,0.0,0.0,11
+5,Remediation Quality,SQL injection,B2_graph_only,0.0,20.2,0.1,0.0909,0.25,0.0948,11
+5,Remediation Quality,SQL injection,G_0.3,0.3,86.4,0.1,0.0909,0.25,0.0948,11
+5,Remediation Quality,SQL injection,G_0.5,0.5,74.3,0.1,0.0909,0.25,0.0948,11
+5,Remediation Quality,SQL injection,G_0.7,0.7,76.6,0.0,0.0,0.0,0.0,11

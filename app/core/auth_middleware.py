@@ -26,7 +26,29 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/redoc",
         "/openapi.json",
         "/health",
+        "/config",
     }
+
+    # Route prefixes that don't require authentication (lab/dev mode)
+    PUBLIC_PREFIXES = {
+        "/api/v1/graph",
+        "/api/v1/retrieve",
+        "/retrieve",
+        "/ingest",
+        "/extract",
+        "/workflow",
+        "/tools",
+        "/dashboard",
+        "/nuclei",
+        "/jobs",
+        "/ws",
+        "/search",
+        "/batch",
+        "/collect",
+        "/kg",
+        "/risk",
+        "/optimize",
+    } if True else set()  # set True=lab, False=production
 
     async def dispatch(self, request: Request, call_next):
         """Process request and handle authentication."""
@@ -90,7 +112,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def _is_public_route(path: str) -> bool:
         """Check if route is public."""
-        return path in AuthMiddleware.PUBLIC_ROUTES or path.startswith("/static/")
+        if path in AuthMiddleware.PUBLIC_ROUTES or path.startswith("/static/"):
+            return True
+        return any(path.startswith(prefix) for prefix in AuthMiddleware.PUBLIC_PREFIXES)
 
 
 class PermissionMiddleware(BaseHTTPMiddleware):
@@ -165,5 +189,8 @@ class PermissionMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/openapi.json",
             "/health",
+            "/config",
         }
-        return any(path.startswith(route) for route in public_routes)
+        if any(path.startswith(route) for route in public_routes):
+            return True
+        return any(path.startswith(prefix) for prefix in AuthMiddleware.PUBLIC_PREFIXES)

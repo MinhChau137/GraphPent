@@ -349,6 +349,6 @@ class GraphService:
 
 
 @lru_cache(maxsize=1)
-async def get_graph_service() -> GraphService:
+def get_graph_service() -> GraphService:
     """Get or create graph service singleton."""
     return GraphService()

@@ -62,10 +62,10 @@ bootstrap-neo4j:
 	@scripts\bootstrap\bootstrap_neo4j.bat
 
 bootstrap-weaviate:
-	docker compose exec backend python /scripts/bootstrap/weaviate_bootstrap.py
+	docker compose exec backend python /app/scripts/bootstrap/weaviate_bootstrap.py
 
 bootstrap-minio:
-	docker compose exec backend python /scripts/bootstrap/minio_bootstrap.py
+	docker compose exec backend python /app/scripts/bootstrap/minio_bootstrap.py
 
 test:
 	pytest tests/ -v --asyncio-mode=auto

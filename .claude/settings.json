@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - Mobifone\\\\ThS\\\\20252\\\\ANM\\\\GraphPent\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "PowerShell(head -50)",
+      "Bash(docker compose *)",
+      "Bash(docker exec *)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - Mobifone\\\\ThS\\\\20252\\\\ANM\\\\GraphPent\" -Depth 1 -File | Where-Object {$_.Extension -in '.toml','.cfg'} | Select-Object FullName)",
+      "Bash(timeout 8)",
+      "Bash(curl -s http://localhost:8000/api/v1/graph/health)",
+      "Bash(curl -s \"http://localhost:8080/v1/objects?class=docs_chunks&limit=1\")",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"XSS\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r.get\\('id',''\\), r.get\\('content',''\\)[:80]\\) for r in d.get\\('results',[]\\)]\")",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"CSRF\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"IDOR\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"authentication\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"CWE\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"SQL injection\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
+      "Bash(python3 -c ' *)",
+      "Bash(python -m evaluation.runner)"
+    ]
+  }
+}

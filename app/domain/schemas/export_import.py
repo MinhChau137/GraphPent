@@ -75,7 +75,7 @@ class ExportJobResponse(BaseModel):
     source: str
     source_id: str
     format: ExportFormatEnum
-    status: str = Field(..., regex="^(pending|processing|completed|failed)$")
+    status: str = Field(..., pattern="^(pending|processing|completed|failed)$")
     progress_percent: int = Field(default=0, ge=0, le=100)
     download_url: Optional[str] = None
     file_size_bytes: Optional[int] = None
@@ -153,7 +153,7 @@ class ImportJobResponse(BaseModel):
     
     import_id: str
     job_name: str
-    status: str = Field(..., regex="^(pending|processing|completed|failed)$")
+    status: str = Field(..., pattern="^(pending|processing|completed|failed)$")
     progress_percent: int = Field(default=0, ge=0, le=100)
     imported_records: int = 0
     failed_records: int = 0

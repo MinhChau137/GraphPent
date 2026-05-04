@@ -5,7 +5,6 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from app.config.settings import settings
 

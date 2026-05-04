@@ -157,6 +157,7 @@ services:
       - .env
     volumes:
       - .:/app
+      - ./data:/app/data:ro
     depends_on:
       postgres:
         condition: service_healthy
