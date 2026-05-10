@@ -1,0 +1,148 @@
+{
+  "vector": {
+    "per_case": [
+      {
+        "case_id": "r1",
+        "scenario": "remediation_quality",
+        "finding_text": "SQL injection in login form",
+        "mode": "vector",
+        "alpha": 1.0,
+        "pred_remediations": [
+          "Use prepared statements"
+        ],
+        "truth_remediations": [
+          "Input validation",
+          "Parameterized queries",
+          "Use prepared statements"
+        ],
+        "precision": 1.0,
+        "recall": 0.3333333333333333,
+        "f1": 0.5
+      },
+      {
+        "case_id": "r2",
+        "scenario": "remediation_quality",
+        "finding_text": "XSS in search parameter",
+        "mode": "vector",
+        "alpha": 1.0,
+        "pred_remediations": [
+          "Output encoding"
+        ],
+        "truth_remediations": [
+          "Content Security Policy",
+          "Output encoding"
+        ],
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666
+      }
+    ],
+    "summary": {
+      "mode": "vector",
+      "alpha": 1.0,
+      "num_cases": 2,
+      "precision": 1.0,
+      "recall": 0.41666666666666663,
+      "f1": 0.5833333333333333
+    }
+  },
+  "graph": {
+    "per_case": [
+      {
+        "case_id": "r1",
+        "scenario": "remediation_quality",
+        "finding_text": "SQL injection in login form",
+        "mode": "graph",
+        "alpha": 0.0,
+        "pred_remediations": [
+          "Input validation",
+          "Use prepared statements"
+        ],
+        "truth_remediations": [
+          "Input validation",
+          "Parameterized queries",
+          "Use prepared statements"
+        ],
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8
+      },
+      {
+        "case_id": "r2",
+        "scenario": "remediation_quality",
+        "finding_text": "XSS in search parameter",
+        "mode": "graph",
+        "alpha": 0.0,
+        "pred_remediations": [
+          "Content Security Policy",
+          "Output encoding"
+        ],
+        "truth_remediations": [
+          "Content Security Policy",
+          "Output encoding"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "graph",
+      "alpha": 0.0,
+      "num_cases": 2,
+      "precision": 1.0,
+      "recall": 0.8333333333333333,
+      "f1": 0.9
+    }
+  },
+  "hybrid": {
+    "per_case": [
+      {
+        "case_id": "r1",
+        "scenario": "remediation_quality",
+        "finding_text": "SQL injection in login form",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "pred_remediations": [
+          "Input validation",
+          "Parameterized queries",
+          "Use prepared statements"
+        ],
+        "truth_remediations": [
+          "Input validation",
+          "Parameterized queries",
+          "Use prepared statements"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      {
+        "case_id": "r2",
+        "scenario": "remediation_quality",
+        "finding_text": "XSS in search parameter",
+        "mode": "hybrid",
+        "alpha": 0.7,
+        "pred_remediations": [
+          "Content Security Policy",
+          "Output encoding"
+        ],
+        "truth_remediations": [
+          "Content Security Policy",
+          "Output encoding"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "summary": {
+      "mode": "hybrid",
+      "alpha": 0.7,
+      "num_cases": 2,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}

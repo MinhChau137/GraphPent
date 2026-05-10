@@ -2,13 +2,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import glob
 
 # Set style for better plots
 sns.set_style("whitegrid")
 
+# Find the latest benchmark results CSV
+results_dir = 'evaluation/results'
+csv_pattern = os.path.join(results_dir, 'benchmark_results_*.csv')
+csv_files = glob.glob(csv_pattern)
+if not csv_files:
+    raise FileNotFoundError(f"No CSV files found in {results_dir}")
+
+# Get the latest file by modification time
+latest_csv = max(csv_files, key=os.path.getmtime)
+print(f"Using latest CSV: {latest_csv}")
+
 # Load the benchmark results CSV
-csv_file = 'evaluation/results/benchmark_results_20260408_212150.csv'
-df = pd.read_csv(csv_file)
+df = pd.read_csv(latest_csv)
 
 # Ensure output directory exists
 output_dir = 'evaluation/results/charts'
