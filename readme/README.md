@@ -1,4 +1,4 @@
-# GraphPent — Hướng dẫn cho thành viên mới
+# GraphPent
 
 > Phiên bản: v0.3.0 | Cập nhật: 05/2026
 
