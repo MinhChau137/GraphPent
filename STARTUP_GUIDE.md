@@ -216,32 +216,14 @@ docker compose exec neo4j cypher-shell -u neo4j -p password123 \
 
 ## 6. Bước 4 — Nạp Dữ Liệu
 
-### 6.1 Load sample data (CWE taxonomy)
+### 6.1 Load data
 
 ```bash
-make load-sample
-# hoặc:
-python scripts/fixtures/load_sample_data.py
+# Load data từ file cve json
+docker compose exec backend python /app/scripts/batch_pipeline_optimized.py  --mode cve  --year 2024  --data-dir /app/data
+
+# Load data từ file cwe, nvd thì đổi mode tương ứng và bỏ tag --year
 ```
-
-Sample data gồm:
-- CWE XML taxonomy → Neo4j (cwe-89, cwe-79, cwe-287, ...)
-- Chunk embeddings → Weaviate (PostgreSQL IDs như 427.0, 1861.0)
-
-### 6.2 Ingest CVE từ NVD
-
-```bash
-# Ingest 1000 CVEs từ NVD cvelistV5
-python scripts/batch_ingest_cve.py --source nvd --limit 1000
-```
-
-Quá trình này:
-1. Đọc JSON từ NVD cvelistV5
-2. LLM extract entities + relations
-3. Ghi CVE nodes vào Neo4j (`cve-2024-xxxx`, `CVE-2022-xxxx`)
-4. Embed mô tả → Weaviate chunks
-
-> Mất 10–30 phút tùy số lượng và tốc độ Ollama.
 
 ### 6.3 Kiểm tra dữ liệu đã nạp
 

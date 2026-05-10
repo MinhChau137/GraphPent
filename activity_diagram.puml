@@ -1,0 +1,167 @@
+@startuml GraphPent_Activity_Diagram
+!theme plain
+skinparam ActivityBackgroundColor #F8F9FA
+skinparam ActivityBorderColor #495057
+skinparam ActivityFontSize 12
+skinparam ArrowColor #495057
+skinparam NoteBackgroundColor #FFF3CD
+skinparam NoteBorderColor #FFC107
+skinparam PartitionBackgroundColor #E9ECEF
+skinparam PartitionBorderColor #6C757D
+skinparam ActivityDiamondBackgroundColor #D1ECF1
+skinparam ActivityDiamondBorderColor #0C5460
+
+title GraphPent — System Activity Diagram
+
+|#E8F5E9|Client|
+|#E3F2FD|L2 Ingestion|
+|#FFF8E1|L3 GraphRAG|
+|#FCE4EC|L4 KG Completion|
+|#EDE7F6|L5 GNN Risk|
+|#E0F7FA|L6 Reasoning|
+|#FBE9E7|L7 Execution|
+
+' ═══════════════════════════════════════════════
+'  ENTRY POINT
+' ═══════════════════════════════════════════════
+|Client|
+start
+:User submits request;
+note right
+  POST /workflow/multi-agent
+  {query, scan_target?,
+   max_loop_iterations=3}
+end note
+
+' ═══════════════════════════════════════════════
+'  BRANCH: Has scan_target?
+' ═══════════════════════════════════════════════
+if (scan_target provided\nAND iteration == 0?) then (yes)
+
+  |L2 Ingestion|
+  :collection_node — Nmap Scan;
+  note right
+    nmap -sV --top-ports 1000 <target>
+  end note
+  :Parse XML output;
+  :Extract Host / Port / Service entities;
+  :Neo4j MERGE entities & relations\n(HAS_PORT, RUNS_SERVICE, EXPOSES);
+  :Return collection_results\nnew_findings_count;
+
+else (no / skip)
+  |L2 Ingestion|
+  :collection_node — No-op\n(preserve existing graph);
+endif
+
+' ═══════════════════════════════════════════════
+'  FEEDBACK LOOP START
+' ═══════════════════════════════════════════════
+|L6 Reasoning|
+repeat
+  ' ── planner_node ──────────────────────────
+  :planner_node;
+
+  fork
+    |L4 KG Completion|
+    if (iteration == 0?) then (yes)
+      :Async: kg_completion_service\n.complete_graph();
+      :Find low-degree entities\n(degree ≤ max_degree);
+      :LLM predicts missing relations\n(confidence ≥ 0.65);
+      :Neo4j upsert inferred relations\n(inferred=True flag);
+    else (skip)
+    endif
+  fork again
+    |L5 GNN Risk|
+    if (iteration > 0?) then (yes)
+      :gnn_service\n.get_prioritized_targets();
+      :Select next high-risk host\nas scan target;
+    else (keep original)
+    endif
+  end fork
+
+  |L6 Reasoning|
+  :Enrich query with\ndiscovered host IPs;
+  :Select search mode\n(graph_only if CVE query,\nhybrid otherwise);
+  :Decide needs_tools\n(target / results / keywords?);
+
+  ' ── retrieval_node ────────────────────────
+  |L3 GraphRAG|
+  :retrieval_node — Hybrid Search;
+
+  if (Redis cache hit?) then (yes)
+    :Return cached results;
+  else (miss)
+    fork
+      :Vector Search\nWeaviate.near_text(query, K);
+      note right: nomic-embed-text-v1.5\ncosine similarity
+    fork again
+      :Graph Traversal\nNeo4j fulltext + BFS 1-2 hops;
+      note right: Fallback: CONTAINS search
+    end fork
+    :Reciprocal Rank Fusion (RRF)\nscore = α·RRF_vec + (1-α)·RRF_graph\ndefault α = 0.3;
+    :Store results in Redis (TTL 1h);
+    :Log analytics to DB;
+  endif
+  :Return retrieval_results (Top-K);
+
+  ' ── graph_reasoning_node ──────────────────
+  |L5 GNN Risk|
+  :graph_reasoning_node;
+
+  :gnn_service.get_risk_summary()\n→ severity_counts, top-5 risks;
+  note right
+    risk(v) = 0.10×PageRank
+            + 0.80×CVSS_norm
+            + 0.10×Betweenness
+  end note
+  :gnn_service.find_attack_paths()\n→ CWE → CVE (1-3 hops)\npath_risk = target_risk / hops;
+  :Generate recommendations;
+
+  |L6 Reasoning|
+  if (needs_tools == True\nAND retrieval_results ≠ ∅?) then (yes)
+
+    ' ── tool_node ─────────────────────────
+    |L7 Execution|
+    :tool_node;
+
+    fork
+      :CVE Analysis\ntool_service.analyze_cve_exploitable()\n→ exploitability_score [0-1]\n→ attack_vector, severity;
+    fork again
+      if (scan_target set?) then (yes)
+        :Nuclei Scan\ntool_service.run_nuclei_scan()\nnuclei -u <target> -severity critical,high -json;
+        :Parse JSONL findings;
+        :Store Finding nodes → Neo4j\n(MAPPED_TO CVE/CWE);
+        :Accumulate nuclei_findings_count;
+      else (no)
+      endif
+    end fork
+    :Collect tool_results[];
+
+  else (no)
+  endif
+
+  ' ── report_node ───────────────────────────
+  |L7 Execution|
+  :report_node;
+  :Aggregate all 7 layers:\nL1-L2 collection, L3 retrieval,\nL4 KG completion, L5 GNN,\nL6 recommendations, L7 tools;
+  :report_service\n.generate_markdown_report()\n→ Executive Summary\n→ Hosts, Findings by severity\n→ Recommendations;
+  :Synthesize final_answer;
+
+  ' ── human_approval_node ───────────────────
+  |L6 Reasoning|
+  :human_approval_node\nValidate & approve outputs;
+  :loop_iteration += 1;
+  :Reset new_findings_count = 0;
+
+  ' ── loop decision ─────────────────────────
+repeat while (new_findings > 0\nAND loop_iteration < MAX_LOOP?) is (yes — re-reason)
+→ (no — done)
+
+' ═══════════════════════════════════════════════
+'  FINAL OUTPUT
+' ═══════════════════════════════════════════════
+|Client|
+:Return response\nreport_markdown, final_answer\nloop_iterations, latency_ms;
+stop
+
+@enduml
