@@ -41,7 +41,7 @@ def should_continue_loop(state: Dict[str, Any]) -> str:
 
     if new_findings > 0 and loop_iteration < max_iterations:
         logger.info(
-            "🔄 Feedback loop triggered",
+            "Feedback loop triggered",
             iteration=loop_iteration,
             new_findings=new_findings,
             max=max_iterations,
@@ -49,7 +49,7 @@ def should_continue_loop(state: Dict[str, Any]) -> str:
         return "planner"
 
     logger.info(
-        "✅ Workflow ending",
+        "Workflow ending",
         iteration=loop_iteration,
         new_findings=new_findings,
     )

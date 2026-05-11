@@ -154,8 +154,7 @@ repeat
   :Reset new_findings_count = 0;
 
   ' ── loop decision ─────────────────────────
-repeat while (new_findings > 0\nAND loop_iteration < MAX_LOOP?) is (yes — re-reason)
-→ (no — done)
+repeat while (new_findings > 0 AND loop_iteration < MAX_LOOP?) is (yes - re-reason) not (no - done)
 
 ' ═══════════════════════════════════════════════
 '  FINAL OUTPUT
