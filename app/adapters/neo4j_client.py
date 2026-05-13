@@ -934,11 +934,14 @@ class Neo4jAdapter:
         MATCH path = (src {{id: $source_id}})-[*1..{max_hops}]->(tgt:{target_label})
         WITH path, tgt,
              [node IN nodes(path) | coalesce(node.name, node.id)] AS node_names,
-             [rel  IN relationships(path) | type(rel)] AS rel_types,
+             [rel  IN relationships(path) | type(rel)]              AS rel_types,
+             [rel  IN relationships(path) | coalesce(rel.confidence, 1.0)] AS edge_confs,
              length(path) AS hops
+        WITH node_names, rel_types, edge_confs, hops, tgt,
+             reduce(conf = 1.0, c IN edge_confs | conf * c) AS path_confidence
         ORDER BY hops ASC
         LIMIT 10
-        RETURN node_names, rel_types, hops,
+        RETURN node_names, rel_types, edge_confs, hops, path_confidence,
                tgt.id AS target_id, tgt.name AS target_name,
                coalesce(tgt.risk_score, tgt.cvss_score, tgt.pagerank_score, 0.1) AS target_risk
         """

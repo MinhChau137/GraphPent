@@ -75,7 +75,7 @@ class Settings(BaseSettings):
 
     # ── Tunable parameters (Phase 10-13) ──────────────────────────────────
     # RRF Retrieval
-    RRF_ALPHA: float = 0.7      # 0.0=pure graph  1.0=pure vector
+    RRF_ALPHA: float = 0.3      # 0.0=pure graph  1.0=pure vector  (optimal=0.3 per benchmark)
     RRF_K: float = 60.0         # RRF constant (higher→smoother rank diff)
 
     # LLM Extraction confidence gates

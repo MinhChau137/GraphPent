@@ -136,6 +136,7 @@ pip install -r requirements.txt
 
 ```bash
 make up
+make bootstrap
 # hoặc trực tiếp:
 docker compose up --build -d
 ```

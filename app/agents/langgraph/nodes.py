@@ -19,6 +19,7 @@ from app.services.tool_service import PentestToolService
 from app.services.collection_service import CollectionService
 from app.services.gnn_service import GNNService
 from app.services.kg_completion_service import KGCompletionService
+from app.services.csnt_kg_completion import CSNTKGCompletion
 from app.core.logger import logger
 from app.core.security import audit_log
 from typing import Dict, Any, List
@@ -33,6 +34,7 @@ tool_service = PentestToolService()
 collection_service = CollectionService()
 gnn_service = GNNService()
 kg_completion_service = KGCompletionService()
+csnt_service = CSNTKGCompletion()
 
 # ============ AGENT NODES ============
 
@@ -118,16 +120,32 @@ async def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     query_lower = query.lower()
 
     # ── L4: KG Completion — fire-and-forget on the first iteration ───────────
-    # Run as a background task so it never blocks retrieval latency.
+    # CSNT pass (structural + neural + template + confidence) runs first;
+    # LLM-based completion follows as a slower background supplement.
+    # Neither call blocks retrieval latency.
     kg_result = state.get("kg_completion_result", {})
     if loop_iteration == 0 and not kg_result:
         import asyncio
+
         async def _run_kg_completion():
             try:
-                r = await kg_completion_service.complete_graph(max_entities=10, max_degree=2)
-                logger.info("L4: KG Completion background done", result=r)
+                # CSNT: fast, graph-native, no LLM needed
+                r = await csnt_service.run_completion_pass(
+                    min_confidence=0.60,
+                    max_edges_per_rule=200,
+                    run_neural=True,
+                    run_anomaly=True,
+                )
+                logger.info("L4: CSNT completion done", **r.summary)
             except Exception as exc:
-                logger.warning("L4: KG Completion background failed", error=str(exc))
+                logger.warning("L4: CSNT completion failed", error=str(exc))
+            try:
+                # LLM supplement: fills semantic gaps CSNT cannot infer
+                r2 = await kg_completion_service.complete_graph(max_entities=5, max_degree=2)
+                logger.info("L4: LLM completion done", result=r2)
+            except Exception as exc:
+                logger.warning("L4: LLM completion failed", error=str(exc))
+
         asyncio.ensure_future(_run_kg_completion())
         kg_result = {"status": "triggered_background", "iteration": loop_iteration}
 
@@ -208,13 +226,14 @@ async def retrieval_node(state: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("🔎 Retrieval Agent", query=query[:100], mode=search_mode)
     
     try:
-        # Determine alpha based on mode
+        # Determine alpha based on mode — hybrid uses settings.RRF_ALPHA (default 0.3)
+        from app.config.settings import settings as _settings
         alpha_map = {
             "vector_only": 1.0,
-            "graph_only": 0.0,
-            "hybrid": 0.7
+            "graph_only":  0.0,
+            "hybrid":      _settings.RRF_ALPHA,
         }
-        alpha = alpha_map.get(search_mode, 0.7)
+        alpha = alpha_map.get(search_mode, _settings.RRF_ALPHA)
         
         # Execute retrieval
         retrieval_results = await retriever_service.hybrid_retrieve(

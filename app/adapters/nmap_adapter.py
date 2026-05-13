@@ -11,6 +11,71 @@ from app.config.settings import settings
 from app.domain.schemas.extraction import Entity, Provenance, Relation
 
 
+_VENDOR_MAP = {
+    "apache": "apache", "apache httpd": "apache", "apache http server": "apache",
+    "apache tomcat": "apache", "tomcat": "apache", "struts": "apache",
+    "nginx": "nginx",
+    "iis": "microsoft", "microsoft iis": "microsoft",
+    "openssh": "openbsd",
+    "dropbear": "matt_johnston", "dropbear sshd": "matt_johnston",
+    "mysql": "oracle", "mysql community server": "oracle",
+    "mariadb": "mariadb",
+    "postgresql": "postgresql",
+    "redis": "redis",
+    "mongodb": "mongodb",
+    "proftpd": "proftpd",
+    "vsftpd": "beasts",
+    "pure-ftpd": "pureftpd",
+    "samba": "samba",
+    "exim": "exim", "exim smtpd": "exim",
+    "postfix": "postfix",
+    "sendmail": "sendmail",
+    "dovecot": "dovecot", "dovecot imapd": "dovecot",
+    "lighttpd": "lighttpd",
+    "php": "php",
+    "wordpress": "wordpress",
+    "drupal": "drupal",
+    "joomla": "joomla",
+    "jenkins": "jenkins",
+    "elasticsearch": "elastic",
+    "kibana": "elastic",
+    "grafana": "grafana",
+    "influxdb": "influxdata",
+    "rabbitmq": "vmware",
+    "spring": "vmware",
+    "log4j": "apache",
+    # Products in sample nmap scan
+    "activemq": "apache", "apache activemq": "apache",
+    "confluence": "atlassian",
+    "zookeeper": "apache", "apache zookeeper": "apache",
+    "couchdb": "apache", "couchdb httpd": "apache",
+    "bind": "isc", "bind9": "isc",
+    "dnsmasq": "thekelleys",
+    "dropbear sshd": "matt_johnston",
+    "filezilla server": "filezilla-project",
+    "jupyter": "jupyter", "jupyter notebook": "jupyter",
+    "prometheus": "prometheus",
+    "sonarqube": "sonarsource",
+    "oracle weblogic": "oracle", "weblogic": "oracle",
+    "oracle tns listener": "oracle",
+    "microsoft iis httpd": "microsoft",
+    "microsoft terminal services": "microsoft",
+    "pure-ftpd": "pureftpd", "pure ftpd": "pureftpd",
+    "cyrus imapd": "cmu", "dovecot pop3d": "dovecot",
+    "postfix smtpd": "postfix",
+}
+
+
+def _vendor_from_product(product: str) -> str:
+    key = product.strip().lower()
+    if key in _VENDOR_MAP:
+        return _VENDOR_MAP[key]
+    for k, v in _VENDOR_MAP.items():
+        if k in key or key in k:
+            return v
+    return ""
+
+
 _NMAP_PROVENANCE = Provenance(
     confidence=0.95,
     tool_origin="nmap-scanner",
@@ -83,6 +148,9 @@ class NmapAdapter:
             logger.error("Nmap XML parse error", error=str(exc))
             return [], []
 
+        seen_zones: Dict[str, bool] = {}
+        seen_apps:  Dict[str, bool] = {}
+
         for host_elem in root.findall("host"):
             status = host_elem.find("status")
             if status is None or status.get("state") != "up":
@@ -93,22 +161,66 @@ class NmapAdapter:
                 continue
 
             hostname = self._get_hostname(host_elem)
-            os_name = self._get_os(host_elem)
+            os_name  = self._get_os(host_elem)
+            mac      = self._get_mac(host_elem)
 
-            host_entity = Entity(
-                id=f"host-{ip}",
-                type="Host",
-                name=ip,
+            # ── NetworkZone (subnet /24) ────────────────────────────────────
+            subnet   = ".".join(ip.split(".")[:3]) + ".0/24"
+            zone_id  = f"zone-{subnet.replace('/', '_')}"
+            if zone_id not in seen_zones:
+                seen_zones[zone_id] = True
+                entities.append(Entity(
+                    id=zone_id, type="NetworkZone", name=subnet,
+                    properties={"subnet": subnet, "cidr": "/24",
+                                "network": ".".join(ip.split(".")[:3]) + ".0"},
+                    provenance=_NMAP_PROVENANCE,
+                ))
+
+            # ── IP ──────────────────────────────────────────────────────────
+            entities.append(Entity(
+                id=f"ip-{ip}", type="IP", name=ip,
+                properties={"address": ip, "version": "ipv4", "subnet": subnet},
+                provenance=_NMAP_PROVENANCE,
+            ))
+
+            # ── Host ────────────────────────────────────────────────────────
+            entities.append(Entity(
+                id=f"host-{ip}", type="Host", name=hostname or ip,
                 properties={
-                    "ip": ip,
-                    "hostname": hostname,
-                    "os": os_name,
-                    "status": "up",
+                    "ip": ip, "hostname": hostname, "os": os_name,
+                    "mac": mac, "status": "up", "subnet": subnet,
                 },
                 provenance=_NMAP_PROVENANCE,
-            )
-            entities.append(host_entity)
+            ))
 
+            # Host -[HAS_IP]-> IP
+            relations.append(Relation(type="HAS_IP",
+                source_id=f"host-{ip}", target_id=f"ip-{ip}",
+                provenance=_NMAP_PROVENANCE))
+
+            # Host -[LOCATED_IN]-> NetworkZone
+            relations.append(Relation(type="LOCATED_IN",
+                source_id=f"host-{ip}", target_id=zone_id,
+                provenance=_NMAP_PROVENANCE))
+
+            # IP -[LOCATED_IN]-> NetworkZone
+            relations.append(Relation(type="LOCATED_IN",
+                source_id=f"ip-{ip}", target_id=zone_id,
+                provenance=_NMAP_PROVENANCE))
+
+            # ── Domain (hostname) ───────────────────────────────────────────
+            if hostname:
+                domain_id = f"domain-{hostname.lower()}"
+                entities.append(Entity(
+                    id=domain_id, type="Domain", name=hostname,
+                    properties={"fqdn": hostname, "host_ip": ip},
+                    provenance=_NMAP_PROVENANCE,
+                ))
+                relations.append(Relation(type="HAS_HOSTNAME",
+                    source_id=f"host-{ip}", target_id=domain_id,
+                    provenance=_NMAP_PROVENANCE))
+
+            # ── Ports & Services ────────────────────────────────────────────
             ports_elem = host_elem.find("ports")
             if ports_elem is None:
                 continue
@@ -118,78 +230,114 @@ class NmapAdapter:
                 if state_elem is None or state_elem.get("state") != "open":
                     continue
 
-                portid = port_elem.get("portid", "0")
+                portid   = port_elem.get("portid", "0")
                 protocol = port_elem.get("protocol", "tcp")
                 port_key = f"port-{ip}-{protocol}-{portid}"
 
-                port_entity = Entity(
-                    id=port_key,
-                    type="Port",
-                    name=f"{portid}/{protocol}",
-                    properties={
-                        "port": int(portid),
-                        "protocol": protocol,
-                        "state": "open",
-                        "host": ip,
-                    },
+                entities.append(Entity(
+                    id=port_key, type="Port", name=f"{portid}/{protocol}",
+                    properties={"port": int(portid), "protocol": protocol,
+                                "state": "open", "host": ip},
                     provenance=_NMAP_PROVENANCE,
-                )
-                entities.append(port_entity)
-
-                # Host -[HAS_PORT]-> Port
-                relations.append(
-                    Relation(
-                        type="HAS_PORT",
-                        source_id=f"host-{ip}",
-                        target_id=port_key,
-                        provenance=_NMAP_PROVENANCE,
-                    )
-                )
+                ))
+                relations.append(Relation(type="HAS_PORT",
+                    source_id=f"host-{ip}", target_id=port_key,
+                    provenance=_NMAP_PROVENANCE))
 
                 service_elem = port_elem.find("service")
                 if service_elem is None:
                     continue
 
-                svc_name = service_elem.get("name", "unknown")
+                svc_name    = service_elem.get("name", "unknown")
                 svc_product = service_elem.get("product", "")
                 svc_version = service_elem.get("version", "")
+                svc_extra   = service_elem.get("extrainfo", "")
+                svc_tunnel  = service_elem.get("tunnel", "")
+                svc_cpe     = service_elem.get("cpe", "")
+                if not svc_cpe:
+                    cpe_elem = service_elem.find("cpe")
+                    if cpe_elem is not None and cpe_elem.text:
+                        svc_cpe = cpe_elem.text.strip()
                 svc_key = f"service-{ip}-{portid}"
 
-                service_entity = Entity(
-                    id=svc_key,
-                    type="Service",
-                    name=svc_name,
+                entities.append(Entity(
+                    id=svc_key, type="Service", name=svc_name,
                     properties={
-                        "product": svc_product,
-                        "version": svc_version,
-                        "port": int(portid),
-                        "protocol": protocol,
-                        "host": ip,
+                        "product": svc_product, "version": svc_version,
+                        "port": int(portid), "protocol": protocol,
+                        "host": ip, "extrainfo": svc_extra,
+                        "tunnel": svc_tunnel,
                         "full_name": f"{svc_product} {svc_version}".strip() or svc_name,
+                        "cpe": svc_cpe,
                     },
                     provenance=_NMAP_PROVENANCE,
-                )
-                entities.append(service_entity)
+                ))
 
-                # Port -[RUNS_SERVICE]-> Service
-                relations.append(
-                    Relation(
-                        type="RUNS_SERVICE",
-                        source_id=port_key,
-                        target_id=svc_key,
-                        provenance=_NMAP_PROVENANCE,
-                    )
-                )
+                relations.append(Relation(type="RUNS_SERVICE",
+                    source_id=port_key, target_id=svc_key,
+                    provenance=_NMAP_PROVENANCE))
 
-                # Host -[EXPOSES]-> Service (shortcut edge for graph queries)
-                relations.append(
-                    Relation(
-                        type="EXPOSES",
-                        source_id=f"host-{ip}",
-                        target_id=svc_key,
+                relations.append(Relation(type="EXPOSES",
+                    source_id=f"host-{ip}", target_id=svc_key,
+                    provenance=_NMAP_PROVENANCE))
+
+                # ── Application (deduplicated per product+version) ──────────
+                if svc_product:
+                    import re as _re
+                    app_slug = _re.sub(r"[^a-z0-9]+", "-",
+                                       f"{svc_product}-{svc_version}".lower()).strip("-")
+                    app_id   = f"app-{app_slug}"
+                    if app_id not in seen_apps:
+                        seen_apps[app_id] = True
+                        entities.append(Entity(
+                            id=app_id, type="Application",
+                            name=f"{svc_product} {svc_version}".strip(),
+                            properties={
+                                "product": svc_product, "version": svc_version,
+                                "vendor": _vendor_from_product(svc_product),
+                                "cpe": svc_cpe,
+                            },
+                            provenance=_NMAP_PROVENANCE,
+                        ))
+                    # Service -[RUNS]-> Application
+                    relations.append(Relation(type="RUNS",
+                        source_id=svc_key, target_id=app_id,
+                        provenance=_NMAP_PROVENANCE))
+                    # Host -[RUNS]-> Application
+                    relations.append(Relation(type="RUNS",
+                        source_id=f"host-{ip}", target_id=app_id,
+                        properties={"port": int(portid)},
+                        provenance=_NMAP_PROVENANCE))
+
+                # ── URL (web services) ──────────────────────────────────────
+                _WEB_PORTS = {
+                    80, 443, 8080, 8443, 8888, 9000, 9090, 3000, 4443,
+                    8161, 4848, 7001, 8090, 8000, 8008, 9200, 5601,
+                }
+                if int(portid) in _WEB_PORTS:
+                    is_ssl = (svc_tunnel == "ssl" or
+                              portid in ("443", "8443", "4443") or
+                              "https" in svc_name)
+                    scheme  = "https" if is_ssl else "http"
+                    url_str = f"{scheme}://{ip}:{portid}"
+                    url_id  = f"url-{ip}-{portid}"
+                    entities.append(Entity(
+                        id=url_id, type="URL", name=url_str,
+                        properties={
+                            "url": url_str, "scheme": scheme,
+                            "host": ip, "port": int(portid),
+                            "path": "/",
+                        },
                         provenance=_NMAP_PROVENANCE,
-                    )
-                )
+                    ))
+                    # Service -[EXPOSES_URL]-> URL
+                    relations.append(Relation(type="EXPOSES",
+                        source_id=svc_key, target_id=url_id,
+                        provenance=_NMAP_PROVENANCE))
+                    # URL -[HOSTED_ON]-> Host
+                    relations.append(Relation(type="HOSTED_ON",
+                        source_id=url_id, target_id=f"host-{ip}",
+                        provenance=_NMAP_PROVENANCE))
 
         logger.info(
             "Nmap XML parsed",
@@ -240,6 +388,13 @@ class NmapAdapter:
             match = os_elem.find("osmatch")
             if match is not None:
                 return match.get("name")
+        return None
+
+    @staticmethod
+    def _get_mac(host_elem: ET.Element) -> Optional[str]:
+        for addr in host_elem.findall("address"):
+            if addr.get("addrtype") == "mac":
+                return addr.get("addr")
         return None
 
     # ----------------------------------------- summary helper (used by service)
