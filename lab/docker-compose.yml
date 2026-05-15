@@ -1,0 +1,160 @@
+version: "3.9"
+
+# Pentest lab — mirrors sample_nmap_scan.xml (5 original hosts)
+# Network: 172.30.0.0/24  (safe: no conflict with home 192.168.x.x)
+# Mapping: sample IP → lab IP (last octet preserved)
+#   192.168.1.1   → 172.30.0.1   gateway.local
+#   192.168.1.10  → 172.30.0.10  webserver.local
+#   192.168.1.20  → 172.30.0.20  fileserver.local
+#   192.168.1.30  → 172.30.0.30  dbserver.local
+#   192.168.1.40  → 172.30.0.40  mailserver.local
+#
+# Multi-service hosts use network_mode: service:<primary> so co-hosted
+# services share the same IP — nmap sees them on one address.
+#
+# Usage:
+#   docker compose -f lab/docker-compose.yml up -d --build
+#   docker exec lab-scanner nmap -sV -O --top-ports 1000 172.30.0.0/24 -oX /results/scan.xml
+
+networks:
+  pentest_lab:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/24
+
+services:
+
+  # ── gateway.local (172.30.0.1) ─────────────────────────────────────────
+  # SSH:22 (Dropbear 2019.78)  HTTP:80 (lighttpd 1.4.55)
+  gateway:
+    build:
+      context: ./gateway
+    container_name: lab-gateway
+    hostname: gateway.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.1
+    ports:
+      - "1022:22"
+      - "1080:80"
+    restart: unless-stopped
+
+  # ── webserver.local (172.30.0.10) ──────────────────────────────────────
+  # HTTP:80  HTTPS:443  Tomcat:8080  SSH:22
+  # Apache httpd 2.4.49 — CVE-2021-41773 path-traversal RCE
+  webserver:
+    build:
+      context: ./webserver
+    container_name: lab-webserver
+    hostname: webserver.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.10
+    ports:
+      - "10022:22"
+      - "10080:80"
+      - "10443:443"
+      - "18080:8080"
+    restart: unless-stopped
+
+  # Tomcat 9.0.65 co-hosted on webserver's IP (port 8080)
+  webserver-tomcat:
+    image: tomcat:9.0.65-jdk11-openjdk-slim
+    container_name: lab-webserver-tomcat
+    network_mode: "service:webserver"
+    restart: unless-stopped
+    depends_on:
+      - webserver
+
+  # ── fileserver.local (172.30.0.20) ─────────────────────────────────────
+  # FTP:21 (ProFTPD 1.3.5)  SMB:445 (Samba)  SSH:22
+  fileserver:
+    build:
+      context: ./fileserver
+    container_name: lab-fileserver
+    hostname: fileserver.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.20
+    ports:
+      - "20021:21"
+      - "20022:22"
+      - "20139:139"
+      - "20445:445"
+    restart: unless-stopped
+    # Samba needs these capabilities for proper operation
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+
+  # ── dbserver.local (172.30.0.30) ───────────────────────────────────────
+  # MySQL:3306 (5.7.x)  Redis:6379 (6.2.6)  SSH:22
+  dbserver:
+    image: mysql:5.7
+    container_name: lab-dbserver
+    hostname: dbserver.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.30
+    ports:
+      - "30022:22"
+      - "33306:3306"
+      - "36379:6379"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: testdb
+    restart: unless-stopped
+
+  # Redis 6.2.6 co-hosted on dbserver's IP (port 6379)
+  dbserver-redis:
+    image: redis:6.2.6
+    container_name: lab-dbserver-redis
+    network_mode: "service:dbserver"
+    command: redis-server --bind 0.0.0.0 --protected-mode no
+    restart: unless-stopped
+    depends_on:
+      - dbserver
+
+  # SSH co-hosted on dbserver's IP (port 22)
+  dbserver-ssh:
+    build:
+      context: ./ssh
+    container_name: lab-dbserver-ssh
+    network_mode: "service:dbserver"
+    restart: unless-stopped
+    depends_on:
+      - dbserver
+
+  # ── mailserver.local (172.30.0.40) ─────────────────────────────────────
+  # SMTP:25 (Exim 4.93)  IMAP:143 (Dovecot 2.3.7)  SSH:22
+  mailserver:
+    build:
+      context: ./mailserver
+    container_name: lab-mailserver
+    hostname: mailserver.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.40
+    ports:
+      - "40022:22"
+      - "40025:25"
+      - "40143:143"
+    restart: unless-stopped
+
+  # ── scanner / attacker machine (172.30.0.200) ───────────────────────────
+  scanner:
+    build:
+      context: ./scanner
+    container_name: lab-scanner
+    hostname: attacker.local
+    networks:
+      pentest_lab:
+        ipv4_address: 172.30.0.200
+    volumes:
+      - ./results:/results
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
