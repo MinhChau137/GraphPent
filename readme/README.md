@@ -13,8 +13,9 @@
 5. [Stack công nghệ — Tại sao chọn cái này?](#5-stack-công-nghệ--tại-sao-chọn-cái-này)
 6. [Benchmark — Số liệu thực tế](#6-benchmark--số-liệu-thực-tế)
 7. [Cách chạy project ngay bây giờ](#7-cách-chạy-project-ngay-bây-giờ)
-8. [Cấu trúc thư mục — Cần biết file nào?](#8-cấu-trúc-thư-mục--cần-biết-file-nào)
-9. [Câu hỏi thường gặp](#9-câu-hỏi-thường-gặp)
+8. [Export / Import Neo4j graph](#8-export--import-neo4j-graph)
+9. [Cấu trúc thư mục — Cần biết file nào?](#9-cấu-trúc-thư-mục--cần-biết-file-nào)
+10. [Câu hỏi thường gặp](#10-câu-hỏi-thường-gặp)
 
 ---
 
@@ -983,7 +984,67 @@ python evaluation/runner.py
 
 ---
 
-## 8. Cấu trúc thư mục — Cần biết file nào?
+## 8. Export / Import Neo4j graph
+
+### 8.1 Export bằng APOC (khuyến nghị — container đang chạy)
+
+```bash
+docker exec graphrag-neo4j cypher-shell \
+  -u neo4j -p password123 \
+  "CALL apoc.export.cypher.all(
+     'export/graph_export.cypher',
+     {format: 'cypher-shell',
+      useOptimizations: {type: 'UNWIND_BATCH', unwindBatchSize: 100},
+      batchSize: 1000}
+   ) YIELD file, nodes, relationships, properties, time
+   RETURN file, nodes, relationships, properties, time"
+```
+
+File xuất ra tại: `data/graph_export/graph_export.cypher` (~35 MB, ~29 k nodes, ~36 k relationships).
+
+> **Yêu cầu**: `NEO4J_apoc_export_file_enabled: "true"` phải có trong `docker-compose.yml` (đã có sẵn) và volume `./data/graph_export:/var/lib/neo4j/import/export` phải được mount.
+
+### 8.2 Import bằng APOC (khôi phục vào container đang chạy)
+
+```bash
+# Xoá toàn bộ graph cũ (nếu cần)
+docker exec graphrag-neo4j cypher-shell \
+  -u neo4j -p password123 \
+  "MATCH (n) DETACH DELETE n"
+
+# Import từ file
+docker exec graphrag-neo4j cypher-shell \
+  -u neo4j -p password123 \
+  --file /var/lib/neo4j/import/export/graph_export.cypher
+```
+
+### 8.3 Dump / Load offline bằng neo4j-admin (backup toàn bộ database)
+
+```bash
+# --- DUMP (container phải dừng) ---
+docker stop graphrag-neo4j
+
+docker run --rm \
+  -v graphpent_neo4j_data:/data \
+  -v "$(pwd)/data/graph_export:/backup" \
+  neo4j:5.20.0-community \
+  neo4j-admin database dump neo4j --to-path=/backup
+
+# --- LOAD (ghi đè database hiện tại) ---
+docker run --rm \
+  -v graphpent_neo4j_data:/data \
+  -v "$(pwd)/data/graph_export:/backup" \
+  neo4j:5.20.0-community \
+  neo4j-admin database load neo4j --from-path=/backup --overwrite-destination
+
+docker start graphrag-neo4j
+```
+
+> **Lưu ý Windows**: thay `$(pwd)` bằng `%cd%` (CMD) hoặc `${PWD}` (PowerShell).
+
+---
+
+## 9. Cấu trúc thư mục — Cần biết file nào?
 
 ```
 GraphPent/
@@ -1013,7 +1074,7 @@ GraphPent/
 
 ---
 
-## 9. Câu hỏi thường gặp
+## 10. Câu hỏi thường gặp
 
 **Q: RRF_ALPHA trong .env đặt bao nhiêu?**
 → `RRF_ALPHA=0.3`. Alpha=0.7 (default cũ) làm graph mất tác dụng hoàn toàn, NDCG giảm từ 0.8741 xuống 0.2440.
