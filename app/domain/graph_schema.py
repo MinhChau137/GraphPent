@@ -56,7 +56,8 @@ NODE_SCHEMAS = {
         label="Vulnerability",
         description="CVE Vulnerability instance",
         required_properties=["id", "name"],
-        optional_properties=["cve_id", "cvss_score", "cvss_vector", "published_date", "confidence"],
+        optional_properties=["cve_id", "cvss_score", "cvss_vector", "published_date",
+                             "patch_available", "patch_date", "confidence"],
         indexes=["id", "name", "cve_id"]
     ),
     

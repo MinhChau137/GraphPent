@@ -229,22 +229,25 @@ def _match_service_to_cve(svc: dict, vuln: dict) -> Optional[float]:
             if s_product_n and (s_product_n == v_product or
                                  s_product_n in v_product or
                                  v_product in s_product_n):
-                if s_vendor_n and s_vendor_n != v_vendor:
-                    # Vendor mismatch — giảm confidence
-                    pass
-                else:
-                    # Version range check với product name path
-                    in_range = _version_in_range(
-                        svc_version,
-                        cpe_item.get("version_start_incl", ""),
-                        cpe_item.get("version_start_excl", ""),
-                        cpe_item.get("version_end_incl", ""),
-                        cpe_item.get("version_end_excl", ""),
-                    )
+                in_range = _version_in_range(
+                    svc_version,
+                    cpe_item.get("version_start_incl", ""),
+                    cpe_item.get("version_start_excl", ""),
+                    cpe_item.get("version_end_incl", ""),
+                    cpe_item.get("version_end_excl", ""),
+                )
+                vendor_ok = not s_vendor_n or (s_vendor_n == v_vendor)
+                if vendor_ok:
                     if in_range:
                         best = max(best or 0, 0.75)
                     elif not svc_version or not v_version:
                         best = max(best or 0, 0.50)
+                else:
+                    # Vendor mismatch — giảm 1 tier so với vendor_ok
+                    if in_range:
+                        best = max(best or 0, 0.55)
+                    elif not svc_version or not v_version:
+                        best = max(best or 0, 0.35)
 
     return best
 

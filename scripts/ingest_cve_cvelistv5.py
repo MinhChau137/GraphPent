@@ -372,20 +372,32 @@ def parse_one_file(path: Path) -> Optional[dict]:
         desc  = next((x.get("value", "") for x in descs if x.get("lang", "").startswith("en")), "")
         pub   = (meta.get("datePublished") or cna.get("datePublic") or "")[:10]
 
+        # Detect patch availability from reference tags (cvelistV5 uses lowercase tags)
+        _PATCH_TAGS = {"vendor-advisory", "patch", "release-notes"}
+        refs = cna.get("references", [])
+        patch_available = any(
+            bool(_PATCH_TAGS & set(r.get("tags") or []))
+            for r in refs
+        )
+        # Use dateUpdated as proxy for when patch info was confirmed
+        patch_date = (meta.get("dateUpdated") or "")[:10] if patch_available else ""
+
         return {
-            "id":            cve_id.lower(),
-            "cve_id":        cve_id,
-            "description":   desc[:800],
+            "id":             cve_id.lower(),
+            "cve_id":         cve_id,
+            "description":    desc[:800],
             "published_date": pub,
-            "cvss_version":  cvss["cvss_version"],
-            "cvss_score":    cvss["cvss_score"],
-            "cvss_severity": cvss["cvss_severity"],
-            "attack_vector": cvss["attack_vector"],
-            "vector_string": cvss["vector_string"],
-            "cwe_ids":       cwes,
-            "cpe_vendors":   list({a["vendor"]  for a in affected if a["vendor"]}),
-            "cpe_products":  list({a["product"] for a in affected if a["product"]}),
-            "cpe_affected":  [json.dumps(a, ensure_ascii=False) for a in affected[:30]],
+            "patch_available": patch_available,
+            "patch_date":     patch_date,
+            "cvss_version":   cvss["cvss_version"],
+            "cvss_score":     cvss["cvss_score"],
+            "cvss_severity":  cvss["cvss_severity"],
+            "attack_vector":  cvss["attack_vector"],
+            "vector_string":  cvss["vector_string"],
+            "cwe_ids":        cwes,
+            "cpe_vendors":    list({a["vendor"]  for a in affected if a["vendor"]}),
+            "cpe_products":   list({a["product"] for a in affected if a["product"]}),
+            "cpe_affected":   [json.dumps(a, ensure_ascii=False) for a in affected[:30]],
         }
     except Exception:
         return None
@@ -440,19 +452,21 @@ _CYPHER_VULN = """
 UNWIND $rows AS row
 MERGE (v:Vulnerability {id: row.id})
 SET
-    v.cve_id         = row.cve_id,
-    v.name           = row.cve_id,
-    v.description    = row.description,
-    v.published_date = row.published_date,
-    v.cvss_version   = row.cvss_version,
-    v.cvss_score     = toFloat(row.cvss_score),
-    v.cvss_severity  = row.cvss_severity,
-    v.attack_vector  = row.attack_vector,
-    v.vector_string  = row.vector_string,
-    v.cpe_vendors    = row.cpe_vendors,
-    v.cpe_products   = row.cpe_products,
-    v.cpe_affected   = row.cpe_affected,
-    v.updated_at     = datetime()
+    v.cve_id          = row.cve_id,
+    v.name            = row.cve_id,
+    v.description     = row.description,
+    v.published_date  = row.published_date,
+    v.patch_available = row.patch_available,
+    v.patch_date      = row.patch_date,
+    v.cvss_version    = row.cvss_version,
+    v.cvss_score      = toFloat(row.cvss_score),
+    v.cvss_severity   = row.cvss_severity,
+    v.attack_vector   = row.attack_vector,
+    v.vector_string   = row.vector_string,
+    v.cpe_vendors     = row.cpe_vendors,
+    v.cpe_products    = row.cpe_products,
+    v.cpe_affected    = row.cpe_affected,
+    v.updated_at      = datetime()
 """
 
 _CYPHER_CWE = """

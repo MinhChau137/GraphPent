@@ -19,7 +19,8 @@
       "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"CWE\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
       "Bash(curl -s -X POST \"http://localhost:8000/retrieve/query\" -H \"Content-Type: application/json\" -d '{\"query\":\"SQL injection\",\"limit\":15,\"mode\":\"vector_only\",\"alpha\":1.0,\"use_cache\":false}')",
       "Bash(python3 -c ' *)",
-      "Bash(python -m evaluation.runner)"
+      "Bash(python -m evaluation.runner)",
+      "PowerShell(docker --context default ps --format \"table {{.Names}}`t{{.Status}}\" 2>&1)"
     ]
   }
 }

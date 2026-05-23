@@ -221,11 +221,21 @@ class GNNService:
             MATCH (s:Service)-[r:HAS_VULN]->(v:Vulnerability)
             OPTIONAL MATCH (v)-[:HAS_WEAKNESS]->(:CWE)<-[:MAPPED_TO]-(:TTP)
             WITH s, r, v,
-                 coalesce(r.confidence, 0.65)          AS edge_conf,
+                 CASE
+                   WHEN r.confidence IS NOT NULL THEN r.confidence
+                   WHEN r.match_method = 'cpe_exact'                              THEN 1.00
+                   WHEN r.match_method IN ['cpe_version_range','same_version_rule'] THEN 0.85
+                   WHEN r.match_method IN ['cpe_product_match','structural_cn',
+                                           'structural_path']                     THEN 0.65
+                   WHEN r.match_method IN ['gnn','product_name_fuzzy',
+                                           'host_service_bridge']                 THEN 0.40
+                   ELSE 0.40
+                 END                                                               AS edge_conf,
                  coalesce(v.cvss_score, 5.0) / 10.0    AS cvss_norm,
-                 CASE WHEN count(*) > 0 THEN 1.15 ELSE 1.0 END AS exploit_factor
+                 CASE WHEN count(*) > 0 THEN 1.15 ELSE 1.0 END AS exploit_factor,
+                 CASE WHEN coalesce(v.patch_available, false) = true THEN 0.3 ELSE 1.0 END AS patch_factor
             WITH s,
-                 sum(edge_conf * cvss_norm * exploit_factor) AS raw_score
+                 sum(edge_conf * cvss_norm * exploit_factor * patch_factor) AS raw_score
             SET s.vuln_exposure_score = round(
                     1.0 - exp(-raw_score / 3.0),
                     4)
@@ -306,8 +316,9 @@ class GNNService:
                      WHEN 'low'      THEN 0.25
                      ELSE 0.10
                    END
-                 END AS eff_sev
-            SET n.risk_score = round($w_pr * pr + $w_sev * eff_sev + $w_bc * bc, 4)
+                 END AS eff_sev,
+                 CASE WHEN coalesce(n.patch_available, false) = true THEN 0.3 ELSE 1.0 END AS patch_factor
+            SET n.risk_score = round($w_pr * pr + $w_sev * eff_sev * patch_factor + $w_bc * bc, 4)
             RETURN count(n) AS updated
             """,
             w_pr=w_pr, w_sev=w_sev, w_bc=w_bc,

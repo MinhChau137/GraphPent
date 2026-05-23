@@ -192,12 +192,14 @@ class AffectedPlatform(BaseEntity):
 
 class Vulnerability(BaseEntity):
     """CVE Vulnerability instance (specific occurrence)."""
-    
+
     type: EntityType = EntityType.VULNERABILITY
     cve_id: Optional[str] = None
     cvss_score: Optional[float] = None
     cvss_vector: Optional[str] = None
     published_date: Optional[datetime] = None
+    patch_available: bool = False
+    patch_date: Optional[datetime] = None
     
     class Config:
         json_schema_extra = {
