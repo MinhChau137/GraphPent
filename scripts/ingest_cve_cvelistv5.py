@@ -18,6 +18,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -222,6 +223,98 @@ def _norm_product(p: str) -> str:
     return re.sub(r"[^a-z0-9_.\-]", "_", key).strip("_")
 
 
+def _slug(value: str) -> str:
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9_.\-]+", "_", value)
+    return value.strip("_") or "unknown"
+
+
+def _product_base_id(vendor: str, product: str) -> str:
+    vendor_part = _slug(vendor)
+    product_part = _slug(product)
+    return f"product-{vendor_part}-{product_part}" if vendor_part else f"product-{product_part}"
+
+
+def _product_version_key(item: dict) -> str:
+    parts = [
+        item.get("version", ""),
+        item.get("version_start_incl", ""),
+        item.get("version_start_excl", ""),
+        item.get("version_end_incl", ""),
+        item.get("version_end_excl", ""),
+    ]
+    key = "_".join(_slug(p) for p in parts if p)
+    return key or "all"
+
+
+def _affected_product_nodes(affected: list) -> list:
+    """Convert affected CPE/range rows to AffectedProduct node payloads."""
+    products = []
+    seen = set()
+    for item in affected:
+        vendor = item.get("vendor", "")
+        product = item.get("product", "")
+        if not product:
+            continue
+
+        base_id = _product_base_id(vendor, product)
+        version_key = _product_version_key(item)
+        node_id = f"{base_id}-{version_key}" if version_key != "all" else base_id
+        if node_id in seen:
+            continue
+        seen.add(node_id)
+
+        version = item.get("version", "")
+        end_incl = item.get("version_end_incl", "")
+        end_excl = item.get("version_end_excl", "")
+        if version:
+            version_label = version
+        elif end_excl:
+            version_label = f"< {end_excl}"
+        elif end_incl:
+            version_label = f"<= {end_incl}"
+        else:
+            version_label = "all affected versions"
+
+        base_name = f"{vendor} {product}".strip() or product
+        products.append({
+            "id": node_id,
+            "name": f"{base_name} {version_label}".strip(),
+            "base_id": base_id,
+            "base_name": base_name,
+            "vendor": vendor,
+            "product_name": product,
+            "version": version,
+            "version_start_incl": item.get("version_start_incl", ""),
+            "version_start_excl": item.get("version_start_excl", ""),
+            "version_end_incl": end_incl,
+            "version_end_excl": end_excl,
+            "criteria": item.get("criteria", ""),
+            "status": "vulnerable",
+        })
+    return products
+
+
+def _extract_references_v5(cna: dict, limit: int = 10) -> list:
+    refs = []
+    seen = set()
+    for ref in cna.get("references", [])[:limit]:
+        url = (ref.get("url") or "").strip()
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
+        tags = ref.get("tags") or []
+        refs.append({
+            "id": f"ref-{digest}",
+            "name": url[:120],
+            "reference_url": url,
+            "source_type": ",".join(tags[:5]) if tags else "external",
+            "tags": tags[:10],
+        })
+    return refs
+
+
 # ── cvelistV5 parser ──────────────────────────────────────────────────────────
 
 def _extract_cvss_v5(cna: dict) -> dict:
@@ -398,6 +491,8 @@ def parse_one_file(path: Path) -> Optional[dict]:
             "cpe_vendors":    list({a["vendor"]  for a in affected if a["vendor"]}),
             "cpe_products":   list({a["product"] for a in affected if a["product"]}),
             "cpe_affected":   [json.dumps(a, ensure_ascii=False) for a in affected[:30]],
+            "affected_products": _affected_product_nodes(affected[:30]),
+            "references":     _extract_references_v5(cna),
         }
     except Exception:
         return None
@@ -478,6 +573,86 @@ MERGE (v:Vulnerability {id: row.id})
 MERGE (v)-[:HAS_WEAKNESS {source: 'nvd', confidence: 0.95}]->(c)
 """
 
+_CYPHER_PRODUCTS = """
+UNWIND $rows AS row
+UNWIND coalesce(row.affected_products, []) AS product
+MERGE (p:AffectedProduct {id: product.id})
+SET
+    p.name               = product.name,
+    p.vendor             = product.vendor,
+    p.product_name       = product.product_name,
+    p.version            = product.version,
+    p.version_start_incl = product.version_start_incl,
+    p.version_start_excl = product.version_start_excl,
+    p.version_end_incl   = product.version_end_incl,
+    p.version_end_excl   = product.version_end_excl,
+    p.criteria           = product.criteria,
+    p.status             = product.status,
+    p.updated_at         = datetime()
+MERGE (v:Vulnerability {id: row.id})
+MERGE (v)-[impact:IMPACTS]->(p)
+SET
+    impact.source     = 'cvelistv5',
+    impact.confidence = 0.95,
+    impact.updated_at = datetime()
+WITH p, product
+WHERE product.base_id IS NOT NULL AND product.base_id <> product.id
+MERGE (base:AffectedProduct {id: product.base_id})
+SET
+    base.name         = product.base_name,
+    base.vendor       = product.vendor,
+    base.product_name = product.product_name,
+    base.status       = 'base',
+    base.updated_at   = datetime()
+MERGE (p)-[version_rel:VERSION_OF]->(base)
+SET
+    version_rel.source     = 'cvelistv5',
+    version_rel.confidence = 0.90,
+    version_rel.updated_at = datetime()
+"""
+
+_CYPHER_MITIGATIONS = """
+UNWIND $rows AS row
+WITH row
+WHERE row.patch_available = true
+MERGE (m:Mitigation {id: 'mitigation-' + row.id})
+SET
+    m.name          = 'Patch or upgrade for ' + row.cve_id,
+    m.description   = CASE
+        WHEN row.patch_date IS NULL OR row.patch_date = ''
+        THEN 'Apply vendor patch or upgrade for ' + row.cve_id
+        ELSE 'Apply vendor patch or upgrade for ' + row.cve_id + ' confirmed on ' + row.patch_date
+    END,
+    m.patch_date    = row.patch_date,
+    m.effectiveness = 'high',
+    m.updated_at    = datetime()
+MERGE (v:Vulnerability {id: row.id})
+MERGE (v)-[r:RESOLVED_BY]->(m)
+SET
+    r.source     = 'cvelistv5',
+    r.confidence = 0.85,
+    r.updated_at = datetime()
+"""
+
+_CYPHER_REFERENCES = """
+UNWIND $rows AS row
+UNWIND coalesce(row.references, []) AS ref
+MERGE (rnode:Reference {id: ref.id})
+SET
+    rnode.name          = ref.name,
+    rnode.reference_url = ref.reference_url,
+    rnode.source_type   = ref.source_type,
+    rnode.tags          = ref.tags,
+    rnode.updated_at    = datetime()
+MERGE (v:Vulnerability {id: row.id})
+MERGE (v)-[r:RELATED_TO]->(rnode)
+SET
+    r.source          = 'cvelistv5',
+    r.confidence      = 0.75,
+    r.relation_reason = 'external_reference',
+    r.updated_at      = datetime()
+"""
+
 
 def write_to_neo4j(records: list, batch_size: int):
     try:
@@ -493,6 +668,9 @@ def write_to_neo4j(records: list, batch_size: int):
     with driver.session() as s:
         s.run("CREATE INDEX vuln_id IF NOT EXISTS FOR (v:Vulnerability) ON (v.id)")
         s.run("CREATE INDEX cwe_id  IF NOT EXISTS FOR (c:CWE)           ON (c.id)")
+        s.run("CREATE INDEX affected_product_id IF NOT EXISTS FOR (p:AffectedProduct) ON (p.id)")
+        s.run("CREATE INDEX mitigation_id IF NOT EXISTS FOR (m:Mitigation) ON (m.id)")
+        s.run("CREATE INDEX reference_id IF NOT EXISTS FOR (r:Reference) ON (r.id)")
 
     total = len(records)
     written = 0
@@ -502,6 +680,9 @@ def write_to_neo4j(records: list, batch_size: int):
         batch = records[start: start + batch_size]
         with driver.session() as s:
             s.run(_CYPHER_VULN, rows=batch)
+            s.run(_CYPHER_PRODUCTS, rows=batch)
+            s.run(_CYPHER_MITIGATIONS, rows=batch)
+            s.run(_CYPHER_REFERENCES, rows=batch)
             cwe_rows = [r for r in batch if r["cwe_ids"]]
             if cwe_rows:
                 s.run(_CYPHER_CWE, rows=cwe_rows)

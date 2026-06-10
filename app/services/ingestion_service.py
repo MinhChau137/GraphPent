@@ -1,7 +1,8 @@
 """Ingestion service chính - Phase 4."""
 
 import hashlib
-from sqlalchemy import select
+import uuid
+from sqlalchemy import select, update
 from app.adapters.minio_client import MinIOAdapter
 from app.adapters.weaviate_client import WeaviateAdapter
 from app.adapters.postgres import Document, Chunk, AsyncSessionLocal
@@ -61,6 +62,7 @@ class IngestionService:
                 session.add(doc)
                 await session.flush()
 
+                chunk_objects = []
                 for chunk in chunks_data:
                     chunk_hash = hashlib.sha256(
                         f"{file_hash}:{chunk['chunk_index']}:{chunk['content']}".encode("utf-8")
@@ -73,24 +75,33 @@ class IngestionService:
                         hash=chunk_hash,
                     )
                     session.add(chunk_obj)
+                    chunk_objects.append(chunk_obj)
 
+                await session.flush()
                 await session.commit()
                 
                 # Vector indexing for chunks
                 try:
-                    for chunk in chunks_data:
-                        chunk_obj = session.query(Chunk).filter_by(
-                            document_id=doc.id, 
-                            chunk_index=chunk["chunk_index"]
-                        ).first()
-                        if chunk_obj:
-                            await self.weaviate.upsert_chunk(
-                                chunk_id=chunk_obj.id,
-                                content=chunk_obj.content,
-                                metadata={"document_id": doc.id, "filename": filename}
+                    for chunk_obj in chunk_objects:
+                        weaviate_uuid = await self.weaviate.upsert_chunk(
+                            chunk_id=chunk_obj.id,
+                            content=chunk_obj.content,
+                            metadata={
+                                "document_id": doc.id,
+                                "filename": filename,
+                                "chunk_index": chunk_obj.chunk_index,
+                            }
+                        )
+                        if weaviate_uuid:
+                            await session.execute(
+                                update(Chunk)
+                                .where(Chunk.id == chunk_obj.id)
+                                .values(weaviate_uuid=uuid.UUID(str(weaviate_uuid)))
                             )
+                    await session.commit()
                     logger.info("Vector indexing completed", chunks_indexed=len(chunks_data))
                 except Exception as e:
+                    await session.rollback()
                     logger.warning("Vector indexing failed, continuing", error=str(e))
                 
             except Exception:

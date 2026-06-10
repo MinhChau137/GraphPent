@@ -13,13 +13,17 @@ def _min_confidence() -> float:
     from app.config.settings import settings
     return getattr(settings, "KG_MIN_CONFIDENCE", 0.65)
 
-# Known security relation types that the LLM can predict
+# Known security relation types that the LLM can predict.
+# Keep this aligned with app.domain.graph_schema.EXPECTED_RELATIONSHIP_TYPES.
 _VALID_REL_TYPES = {
-    "MITIGATED_BY", "HAS_CONSEQUENCE", "AFFECTS", "IMPACTS", "TARGETS",
-    "RELATED_TO", "CHILD_OF", "PARENT_OF", "MAPPED_TO", "REFERENCES",
-    "DETECTABLE_BY", "PRECEDES", "ENABLES", "REQUIRES",
-    "HAS_PORT", "RUNS_SERVICE", "EXPOSES", "HOSTED_ON",
-    "CORRELATES_TO", "CLASSIFIED_AS",
+    "IMPACTS",
+    "HAS_WEAKNESS",
+    "RESOLVED_BY",
+    "VERSION_OF",
+    "MITIGATED_BY",
+    "AFFECTS",
+    "HAS_CONSEQUENCE",
+    "RELATED_TO",
 }
 
 _PREDICTION_PROMPT = """You are a cybersecurity knowledge graph expert.

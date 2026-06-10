@@ -6,6 +6,7 @@ from typing import List, Dict, Optional
 from app.config.settings import settings
 from app.core.logger import logger
 import asyncio
+import uuid
 
 # Module-level shared client — created once, reused by all WeaviateAdapter instances.
 _shared_weaviate_client = None
@@ -58,6 +59,8 @@ class WeaviateAdapter:
                         {"name": "content", "dataType": ["text"]},
                         {"name": "metadata", "dataType": ["object"]},
                         {"name": "chunk_id", "dataType": ["int"]},
+                        {"name": "document_id", "dataType": ["int"]},
+                        {"name": "chunk_index", "dataType": ["int"]},
                     ]
                 )
                 logger.info("Created docs_chunks collection")
@@ -74,7 +77,7 @@ class WeaviateAdapter:
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{settings.OLLAMA_BASE_URL}/api/embeddings",
-                json={"model": settings.EMBEDDING_MODEL, "prompt": text}
+                json={"model": settings.EMBEDDING_MODEL, "prompt": text[:3000]}
             )
             response.raise_for_status()
             return response.json()["embedding"]
@@ -83,7 +86,7 @@ class WeaviateAdapter:
         """Upsert chunk vào Weaviate với embedding."""
         if not self.client:
             logger.warning("Weaviate client not available, skipping upsert")
-            return str(chunk_id)
+            return ""
             
         try:
             collection = self.client.collections.get("docs_chunks")
@@ -92,21 +95,34 @@ class WeaviateAdapter:
             embedding = await self.generate_embedding(content)
             
             # Prepare data
+            metadata = metadata or {}
             data = {
                 "content": content,
-                "metadata": metadata or {},
-                "chunk_id": chunk_id
+                "metadata": metadata,
+                "chunk_id": chunk_id,
+                "document_id": int(metadata.get("document_id") or 0),
+                "chunk_index": int(metadata.get("chunk_index") or 0),
             }
+            wv_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"chunk-{chunk_id}"))
             
-            # Upsert
-            result = collection.data.insert(
-                properties=data,
-                vector=embedding,
-                uuid=str(chunk_id)
-            )
+            # Weaviate requires a real UUID. Use UUID5 from chunk_id so re-indexing
+            # the same PostgreSQL chunk is deterministic and idempotent.
+            try:
+                result = collection.data.insert(
+                    properties=data,
+                    vector=embedding,
+                    uuid=wv_uuid
+                )
+            except Exception:
+                collection.data.update(
+                    uuid=wv_uuid,
+                    properties=data,
+                    vector=embedding,
+                )
+                result = wv_uuid
             
             logger.info("Chunk upserted to Weaviate", chunk_id=chunk_id, uuid=result)
-            return result
+            return str(result)
             
         except Exception as e:
             logger.error("Failed to upsert chunk to Weaviate", chunk_id=chunk_id, error=str(e))

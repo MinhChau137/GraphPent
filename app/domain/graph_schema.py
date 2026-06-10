@@ -26,13 +26,36 @@ class NodeSchema:
             self.indexes = ["id", "name"]
 
 
-# Current nodes from extraction
+# Canonical security ontology.
+#
+# Note: the desired node list in the project notes mentions Mitigation twice.
+# We keep the unique labels here and validate against this canonical set.
 NODE_SCHEMAS = {
-    "Weakness": NodeSchema(
-        label="Weakness",
-        description="CWE Weakness (security flaw category)",
+    "Vulnerability": NodeSchema(
+        label="Vulnerability",
+        description="CVE vulnerability instance",
         required_properties=["id", "name"],
-        optional_properties=["cwe_id", "severity", "abstraction_level", "status", "confidence"],
+        optional_properties=["cve_id", "cvss_score", "cvss_vector", "cvss_severity",
+                             "attack_vector", "published_date", "patch_available",
+                             "patch_date", "confidence"],
+        indexes=["id", "name", "cwe_id"]
+    ),
+
+    "AffectedProduct": NodeSchema(
+        label="AffectedProduct",
+        description="Software/hardware product and version range affected by a CVE",
+        required_properties=["id", "name"],
+        optional_properties=["vendor", "product_name", "version", "version_start_incl",
+                             "version_start_excl", "version_end_incl", "version_end_excl",
+                             "criteria", "status", "patched_version", "confidence"],
+        indexes=["id", "name", "vendor", "product_name"]
+    ),
+
+    "CWE": NodeSchema(
+        label="CWE",
+        description="Formal CWE identifier/reference",
+        required_properties=["id", "name"],
+        optional_properties=["cwe_id", "description", "abstraction", "confidence"],
         indexes=["id", "name", "cwe_id"]
     ),
     
@@ -40,8 +63,25 @@ NODE_SCHEMAS = {
         label="Mitigation",
         description="Security Mitigation/Countermeasure",
         required_properties=["id", "name"],
-        optional_properties=["effectiveness", "effort", "confidence"],
+        optional_properties=["description", "effectiveness", "effort", "patch_version",
+                             "patch_date", "confidence"],
         indexes=["id", "name"]
+    ),
+
+    "Reference": NodeSchema(
+        label="Reference",
+        description="External reference/documentation",
+        required_properties=["id", "name"],
+        optional_properties=["reference_url", "source_type", "tags", "confidence"],
+        indexes=["id", "name", "reference_url"]
+    ),
+
+    "Weakness": NodeSchema(
+        label="Weakness",
+        description="Security weakness pattern/category",
+        required_properties=["id", "name"],
+        optional_properties=["cwe_id", "severity", "abstraction_level", "status", "confidence"],
+        indexes=["id", "name", "cwe_id"]
     ),
     
     "AffectedPlatform": NodeSchema(
@@ -51,16 +91,7 @@ NODE_SCHEMAS = {
         optional_properties=["platform_type", "version_range", "confidence"],
         indexes=["id", "name"]
     ),
-    
-    "Vulnerability": NodeSchema(
-        label="Vulnerability",
-        description="CVE Vulnerability instance",
-        required_properties=["id", "name"],
-        optional_properties=["cve_id", "cvss_score", "cvss_vector", "published_date",
-                             "patch_available", "patch_date", "confidence"],
-        indexes=["id", "name", "cve_id"]
-    ),
-    
+
     "Consequence": NodeSchema(
         label="Consequence",
         description="Security impact/consequence",
@@ -68,15 +99,9 @@ NODE_SCHEMAS = {
         optional_properties=["consequence_type", "scope", "confidence"],
         indexes=["id", "name"]
     ),
-    
-    "Reference": NodeSchema(
-        label="Reference",
-        description="External reference/documentation",
-        required_properties=["id", "name"],
-        optional_properties=["reference_url", "source_type", "confidence"],
-        indexes=["id", "name", "reference_url"]
-    ),
 }
+
+EXPECTED_NODE_LABELS = tuple(NODE_SCHEMAS.keys())
 
 
 # ============================================================================
@@ -108,10 +133,46 @@ class RelationshipSchema:
 
 
 RELATIONSHIP_SCHEMAS = {
+    "IMPACTS": RelationshipSchema(
+        type="IMPACTS",
+        description="Vulnerability impacts an affected product/version",
+        source_labels=["Vulnerability"],
+        target_labels=["AffectedProduct"],
+        properties=["confidence", "source", "match_method"],
+        confidence_threshold=0.85
+    ),
+
+    "HAS_WEAKNESS": RelationshipSchema(
+        type="HAS_WEAKNESS",
+        description="Vulnerability is associated with an underlying CWE/weakness",
+        source_labels=["Vulnerability"],
+        target_labels=["CWE", "Weakness"],
+        properties=["confidence", "source", "source_chunk_id"],
+        confidence_threshold=0.85
+    ),
+
+    "RESOLVED_BY": RelationshipSchema(
+        type="RESOLVED_BY",
+        description="Vulnerability is resolved by a mitigation, patch, or upgrade",
+        source_labels=["Vulnerability"],
+        target_labels=["Mitigation"],
+        properties=["confidence", "source", "source_chunk_id"],
+        confidence_threshold=0.80
+    ),
+
+    "VERSION_OF": RelationshipSchema(
+        type="VERSION_OF",
+        description="Affected product/version belongs to a base product",
+        source_labels=["AffectedProduct"],
+        target_labels=["AffectedProduct"],
+        properties=["confidence", "source"],
+        confidence_threshold=0.75
+    ),
+
     "MITIGATED_BY": RelationshipSchema(
         type="MITIGATED_BY",
         description="Weakness is mitigated by mitigation strategy",
-        source_labels=["Weakness", "Vulnerability"],
+        source_labels=["Weakness", "CWE"],
         target_labels=["Mitigation"],
         properties=["confidence", "source_chunk_id"],
         confidence_threshold=0.85
@@ -120,7 +181,7 @@ RELATIONSHIP_SCHEMAS = {
     "AFFECTS": RelationshipSchema(
         type="AFFECTS",
         description="Weakness/Vulnerability affects platform/product",
-        source_labels=["Weakness", "Vulnerability"],
+        source_labels=["Weakness", "CWE", "Vulnerability"],
         target_labels=["AffectedPlatform"],
         properties=["confidence", "source_chunk_id"],
         confidence_threshold=0.75
@@ -129,8 +190,8 @@ RELATIONSHIP_SCHEMAS = {
     "RELATED_TO": RelationshipSchema(
         type="RELATED_TO",
         description="Entity is related to another entity (similar, variant, etc.)",
-        source_labels=["Weakness", "Vulnerability", "Mitigation"],
-        target_labels=["Weakness", "Vulnerability", "Mitigation"],
+        source_labels=list(NODE_SCHEMAS.keys()),
+        target_labels=list(NODE_SCHEMAS.keys()),
         properties=["confidence", "source_chunk_id", "relation_reason"],
         confidence_threshold=0.75
     ),
@@ -138,30 +199,14 @@ RELATIONSHIP_SCHEMAS = {
     "HAS_CONSEQUENCE": RelationshipSchema(
         type="HAS_CONSEQUENCE",
         description="Weakness has a security consequence",
-        source_labels=["Weakness", "Vulnerability"],
+        source_labels=["Weakness", "CWE", "Vulnerability"],
         target_labels=["Consequence"],
         properties=["confidence", "source_chunk_id"],
         confidence_threshold=0.80
     ),
-    
-    "MAPPED_TO": RelationshipSchema(
-        type="MAPPED_TO",
-        description="CVE vulnerability maps to CWE weakness",
-        source_labels=["Vulnerability"],
-        target_labels=["Weakness"],
-        properties=["confidence", "source_chunk_id"],
-        confidence_threshold=0.90
-    ),
-    
-    "REFERENCES": RelationshipSchema(
-        type="REFERENCES",
-        description="Entity references documentation",
-        source_labels=["Weakness", "Vulnerability", "Mitigation"],
-        target_labels=["Reference"],
-        properties=["confidence", "source_chunk_id"],
-        confidence_threshold=0.75
-    ),
 }
+
+EXPECTED_RELATIONSHIP_TYPES = tuple(RELATIONSHIP_SCHEMAS.keys())
 
 
 # ============================================================================
@@ -220,12 +265,18 @@ CYPHER_QUERIES = {
     
     # Get graph statistics
     "get_graph_stats": """
+    MATCH (n)
+    OPTIONAL MATCH ()-[r]->()
     RETURN
-        COUNT(DISTINCT n:Weakness) as weakness_count,
-        COUNT(DISTINCT n:Mitigation) as mitigation_count,
-        COUNT(DISTINCT n:AffectedPlatform) as platform_count,
-        COUNT(DISTINCT n:Consequence) as consequence_count,
-        COUNT(r) as relationship_count
+        count(DISTINCT CASE WHEN n:Vulnerability THEN n END) as vulnerability_count,
+        count(DISTINCT CASE WHEN n:AffectedProduct THEN n END) as affected_product_count,
+        count(DISTINCT CASE WHEN n:CWE THEN n END) as cwe_count,
+        count(DISTINCT CASE WHEN n:Mitigation THEN n END) as mitigation_count,
+        count(DISTINCT CASE WHEN n:Reference THEN n END) as reference_count,
+        count(DISTINCT CASE WHEN n:Weakness THEN n END) as weakness_count,
+        count(DISTINCT CASE WHEN n:AffectedPlatform THEN n END) as platform_count,
+        count(DISTINCT CASE WHEN n:Consequence THEN n END) as consequence_count,
+        count(DISTINCT r) as relationship_count
     """,
     
     # Find vulnerable platforms
@@ -260,12 +311,26 @@ CYPHER_QUERIES = {
 NEO4J_SETUP_SCRIPTS = {
     "create_indexes": """
     // Create indexes for faster queries
+    CREATE INDEX idx_vulnerability_id IF NOT EXISTS FOR (v:Vulnerability) ON (v.id);
+    CREATE INDEX idx_vulnerability_cve IF NOT EXISTS FOR (v:Vulnerability) ON (v.cve_id);
+    CREATE INDEX idx_affected_product_id IF NOT EXISTS FOR (p:AffectedProduct) ON (p.id);
+    CREATE INDEX idx_affected_product_name IF NOT EXISTS FOR (p:AffectedProduct) ON (p.product_name);
+    CREATE INDEX idx_cwe_id IF NOT EXISTS FOR (c:CWE) ON (c.id);
+    CREATE INDEX idx_cwe_cwe_id IF NOT EXISTS FOR (c:CWE) ON (c.cwe_id);
     CREATE INDEX idx_weakness_id IF NOT EXISTS FOR (w:Weakness) ON (w.id);
     CREATE INDEX idx_mitigation_id IF NOT EXISTS FOR (m:Mitigation) ON (m.id);
+    CREATE INDEX idx_reference_id IF NOT EXISTS FOR (r:Reference) ON (r.id);
     CREATE INDEX idx_platform_id IF NOT EXISTS FOR (p:AffectedPlatform) ON (p.id);
     CREATE INDEX idx_weakness_cwe IF NOT EXISTS FOR (w:Weakness) ON (w.cwe_id);
+    CREATE INDEX idx_consequence_id IF NOT EXISTS FOR (c:Consequence) ON (c.id);
+    CREATE CONSTRAINT unique_vulnerability_id IF NOT EXISTS FOR (v:Vulnerability) REQUIRE v.id IS UNIQUE;
+    CREATE CONSTRAINT unique_affected_product_id IF NOT EXISTS FOR (p:AffectedProduct) REQUIRE p.id IS UNIQUE;
+    CREATE CONSTRAINT unique_cwe_id IF NOT EXISTS FOR (c:CWE) REQUIRE c.id IS UNIQUE;
     CREATE CONSTRAINT unique_weakness_id IF NOT EXISTS FOR (w:Weakness) REQUIRE w.id IS UNIQUE;
     CREATE CONSTRAINT unique_mitigation_id IF NOT EXISTS FOR (m:Mitigation) REQUIRE m.id IS UNIQUE;
+    CREATE CONSTRAINT unique_reference_id IF NOT EXISTS FOR (r:Reference) REQUIRE r.id IS UNIQUE;
+    CREATE CONSTRAINT unique_platform_id IF NOT EXISTS FOR (p:AffectedPlatform) REQUIRE p.id IS UNIQUE;
+    CREATE CONSTRAINT unique_consequence_id IF NOT EXISTS FOR (c:Consequence) REQUIRE c.id IS UNIQUE;
     """,
     
     "create_constraints": """
@@ -277,8 +342,8 @@ NEO4J_SETUP_SCRIPTS = {
     "add_full_text_index": """
     // Create full-text search index
     CALL db.index.fulltext.createNodeIndex(
-        "entities",
-        ["Weakness", "Mitigation", "AffectedPlatform"],
+        "nodeSearch",
+        ["Vulnerability", "AffectedProduct", "CWE", "Mitigation", "Reference", "Weakness", "AffectedPlatform", "Consequence"],
         ["name", "id", "description"]
     ) YIELD indexName
     RETURN indexName;
@@ -291,23 +356,53 @@ NEO4J_SETUP_SCRIPTS = {
 # ============================================================================
 
 VALIDATION_RULES = {
+    "IMPACTS": {
+        "minimum_confidence": 0.85,
+        "allowed_source_types": ["Vulnerability"],
+        "allowed_target_types": ["AffectedProduct"],
+        "description": "CVE/product impact should be direct and high confidence"
+    },
+    "HAS_WEAKNESS": {
+        "minimum_confidence": 0.85,
+        "allowed_source_types": ["Vulnerability"],
+        "allowed_target_types": ["CWE", "Weakness"],
+        "description": "CVE weakness mapping should be high confidence"
+    },
+    "RESOLVED_BY": {
+        "minimum_confidence": 0.80,
+        "allowed_source_types": ["Vulnerability"],
+        "allowed_target_types": ["Mitigation"],
+        "description": "Resolution or patch relation should be clear"
+    },
+    "VERSION_OF": {
+        "minimum_confidence": 0.75,
+        "allowed_source_types": ["AffectedProduct"],
+        "allowed_target_types": ["AffectedProduct"],
+        "description": "Version relationship should link product variants"
+    },
     "MITIGATED_BY": {
         "minimum_confidence": 0.85,
-        "allowed_source_types": ["Weakness", "Vulnerability"],
+        "allowed_source_types": ["Weakness", "CWE"],
         "allowed_target_types": ["Mitigation"],
         "description": "Mitigation must have high confidence"
     },
     "AFFECTS": {
         "minimum_confidence": 0.75,
-        "allowed_source_types": ["Weakness", "Vulnerability"],
+        "allowed_source_types": ["Weakness", "CWE", "Vulnerability"],
         "allowed_target_types": ["AffectedPlatform"],
         "description": "Platform impact must be reasonably confident"
     },
     "RELATED_TO": {
         "minimum_confidence": 0.75,
-        "allowed_source_types": ["Weakness", "Vulnerability", "Mitigation"],
-        "allowed_target_types": ["Weakness", "Vulnerability", "Mitigation"],
+        "allowed_source_types": list(NODE_SCHEMAS.keys()),
+        "allowed_target_types": list(NODE_SCHEMAS.keys()),
         "description": "Relation similarity should be reasonably confident"
+    },
+    "HAS_CONSEQUENCE": {
+        "minimum_confidence": 0.80,
+        "allowed_source_types": ["Weakness", "CWE", "Vulnerability"],
+        "allowed_target_types": ["Consequence"],
+        "description": "Consequence relation should be clear"
     },
 }
 

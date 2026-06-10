@@ -25,6 +25,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app.domain.graph_schema import EXPECTED_NODE_LABELS, EXPECTED_RELATIONSHIP_TYPES
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -94,9 +100,12 @@ def export_nodes(driver, labels_filter: list[str] | None = None) -> dict[str, li
     return nodes_by_label
 
 
-def export_edges(driver) -> list[dict]:
+def export_edges(driver, rel_types_filter: list[str] | None = None) -> list[dict]:
     """Export all relationships."""
     rel_types = get_all_rel_types(driver)
+    if rel_types_filter:
+        allowed = set(rel_types_filter)
+        rel_types = [r for r in rel_types if r in allowed]
     edges = []
 
     for rel_type in rel_types:
@@ -212,6 +221,8 @@ def main():
     parser.add_argument("--format", choices=["json", "csv", "both"], default="both")
     parser.add_argument("--label", nargs="+", default=None,
                         help="Chỉ export các label cụ thể, vd: --label Vulnerability CWE")
+    parser.add_argument("--ontology-only", action="store_true",
+                        help="Only export canonical security ontology labels/relationships")
     parser.add_argument("--out", default=str(OUTPUT_DIR),
                         help=f"Output directory (default: {OUTPUT_DIR})")
     args = parser.parse_args()
@@ -221,11 +232,19 @@ def main():
     print(f"\n[CONNECT] {NEO4J_URI}")
     driver = connect(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
 
+    labels_filter = args.label
+    rel_types_filter = None
+    if args.ontology_only:
+        labels_filter = list(EXPECTED_NODE_LABELS) if labels_filter is None else [
+            label for label in labels_filter if label in EXPECTED_NODE_LABELS
+        ]
+        rel_types_filter = list(EXPECTED_RELATIONSHIP_TYPES)
+
     print("\n[NODES] Exporting nodes...")
-    nodes_by_label = export_nodes(driver, labels_filter=args.label)
+    nodes_by_label = export_nodes(driver, labels_filter=labels_filter)
 
     print("\n[EDGES] Exporting relationships...")
-    edges = export_edges(driver)
+    edges = export_edges(driver, rel_types_filter=rel_types_filter)
 
     print(f"\n[SAVE] Output -> {out_dir}")
     if args.format in ("json", "both"):

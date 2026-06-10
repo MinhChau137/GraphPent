@@ -70,6 +70,7 @@ class RelationType(str, Enum):
     
     # Mitigation relationships
     MITIGATED_BY = "MITIGATED_BY"                  # Weakness --[MITIGATED_BY]--> Mitigation
+    RESOLVED_BY = "RESOLVED_BY"                    # Vulnerability --[RESOLVED_BY]--> Mitigation
     HAS_MITIGATION = "HAS_MITIGATION"              # Same as above, alternative direction
     IMPLEMENTS_MITIGATION = "IMPLEMENTS_MITIGATION"
     
@@ -80,6 +81,7 @@ class RelationType(str, Enum):
     # Affected relationships
     AFFECTS = "AFFECTS"                           # Weakness --[AFFECTS]--> Platform
     IMPACTS = "IMPACTS"                           # CVE --[IMPACTS]--> Product
+    HAS_WEAKNESS = "HAS_WEAKNESS"                 # Vulnerability --[HAS_WEAKNESS]--> CWE/Weakness
     TARGETS = "TARGETS"                           # Attack --[TARGETS]--> Component
     
     # Related/Similar relationships
@@ -88,6 +90,7 @@ class RelationType(str, Enum):
     PARENT_OF = "PARENT_OF"                       # Parent --[PARENT_OF]--> Child
     VARIANT_OF = "VARIANT_OF"                     # Variant --[VARIANT_OF]--> Base weakness
     PREDECESSOR_OF = "PREDECESSOR_OF"            # Older version --[PREDECESSOR_OF]--> Newer
+    VERSION_OF = "VERSION_OF"                    # Product version --[VERSION_OF]--> Base product
     
     # Mapping relationships
     MAPPED_TO = "MAPPED_TO"                       # CVE --[MAPPED_TO]--> CWE
@@ -190,6 +193,29 @@ class AffectedPlatform(BaseEntity):
         }
 
 
+class AffectedProduct(BaseEntity):
+    """Specific software/hardware product affected by a vulnerability."""
+
+    type: EntityType = EntityType.AFFECTED_PRODUCT
+    vendor: Optional[str] = None
+    product_name: Optional[str] = None
+    affected_versions: List[str] = Field(default_factory=list)
+    patched_version: Optional[str] = None
+    status: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "product-nginx-1.25",
+                "type": "AffectedProduct",
+                "name": "Nginx 1.25.0-1.25.2",
+                "vendor": "nginx",
+                "product_name": "nginx",
+                "status": "vulnerable"
+            }
+        }
+
+
 class Vulnerability(BaseEntity):
     """CVE Vulnerability instance (specific occurrence)."""
 
@@ -284,6 +310,34 @@ class MitigationRelation(BaseRelationship):
     # target_id: Mitigation ID
 
 
+class ResolvedByRelation(BaseRelationship):
+    """Vulnerability is resolved by a mitigation/patch."""
+    type: RelationType = RelationType.RESOLVED_BY
+    # source_id: Vulnerability ID
+    # target_id: Mitigation ID
+
+
+class HasWeaknessRelation(BaseRelationship):
+    """Vulnerability is associated with a CWE/weakness."""
+    type: RelationType = RelationType.HAS_WEAKNESS
+    # source_id: Vulnerability ID
+    # target_id: CWE/Weakness ID
+
+
+class ImpactsRelation(BaseRelationship):
+    """Vulnerability impacts an affected product."""
+    type: RelationType = RelationType.IMPACTS
+    # source_id: Vulnerability ID
+    # target_id: AffectedProduct ID
+
+
+class VersionOfRelation(BaseRelationship):
+    """Product/version belongs to a base product."""
+    type: RelationType = RelationType.VERSION_OF
+    # source_id: AffectedProduct version ID
+    # target_id: AffectedProduct base ID
+
+
 class AffectsRelation(BaseRelationship):
     """Entity affects a platform/product."""
     type: RelationType = RelationType.AFFECTS
@@ -356,19 +410,33 @@ class KnowledgeGraph(BaseModel):
 # ============================================================================
 
 RELATION_TYPE_STATS = {
-    "MITIGATED_BY": {"count": 9, "description": "Weakness mitigated by mitigation"},
-    "RELATED_TO": {"count": 6, "description": "Entity related to another entity"},
-    "AFFECTS": {"count": 5, "description": "Weakness/CVE affects platform/product"},
+    "IMPACTS": {"count": 0, "description": "Vulnerability impacts product/version"},
+    "HAS_WEAKNESS": {"count": 0, "description": "Vulnerability has CWE/weakness"},
+    "RESOLVED_BY": {"count": 0, "description": "Vulnerability resolved by mitigation"},
+    "VERSION_OF": {"count": 0, "description": "Product version of base product"},
+    "MITIGATED_BY": {"count": 0, "description": "Weakness mitigated by mitigation"},
+    "AFFECTS": {"count": 0, "description": "Weakness/CVE affects platform"},
+    "HAS_CONSEQUENCE": {"count": 0, "description": "Entity has consequence"},
+    "RELATED_TO": {"count": 0, "description": "Entity related to another entity"},
 }
 
 ENTITY_TYPE_STATS = {
-    "Weakness": {"count": 13, "description": "CWE weaknesses"},
-    "Mitigation": {"count": 4, "description": "Security mitigations"},
-    "AffectedPlatform": {"count": 3, "description": "Platforms/technologies"},
+    "Vulnerability": {"count": 0, "description": "CVE vulnerabilities"},
+    "AffectedProduct": {"count": 0, "description": "Affected products/versions"},
+    "CWE": {"count": 0, "description": "CWE references"},
+    "Mitigation": {"count": 0, "description": "Security mitigations"},
+    "Reference": {"count": 0, "description": "External references"},
+    "Weakness": {"count": 0, "description": "Security weaknesses"},
+    "AffectedPlatform": {"count": 0, "description": "Platforms/technologies"},
+    "Consequence": {"count": 0, "description": "Security consequences"},
 }
 
 # Sample confidence thresholds
 CONFIDENCE_THRESHOLDS = {
+    "IMPACTS": 0.85,
+    "HAS_WEAKNESS": 0.85,
+    "RESOLVED_BY": 0.80,
+    "VERSION_OF": 0.75,
     "MITIGATED_BY": 0.85,  # Strict - direct mitigation
     "AFFECTS": 0.75,       # Medium - platform impact
     "RELATED_TO": 0.75,    # Medium - similarity

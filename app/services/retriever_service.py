@@ -9,8 +9,12 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 import json
 import hashlib
 from datetime import datetime, timedelta
-import redis
 from app.config.settings import settings
+
+try:
+    import redis
+except ImportError:
+    redis = None
 
 class MockWeaviateAdapter:
     """Mock adapter for when Weaviate is unavailable."""
@@ -26,8 +30,11 @@ class HybridRetrieverService:
         self._neo4j = None
         self._redis_client = self._init_redis()
 
-    def _init_redis(self) -> Optional[redis.Redis]:
+    def _init_redis(self) -> Optional["redis.Redis"]:
         """Initialize Redis for caching (optional fallback)."""
+        if redis is None:
+            logger.warning("Redis package unavailable; retrieval cache disabled")
+            return None
         try:
             from redis import Redis
             client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -56,9 +63,16 @@ class HybridRetrieverService:
             self._neo4j = Neo4jAdapter()
         return self._neo4j
 
-    def _get_cache_key(self, query: str, mode: str = "hybrid") -> str:
+    def _get_cache_key(
+        self,
+        query: str,
+        mode: str = "hybrid",
+        alpha: Optional[float] = None,
+        limit: Optional[int] = None,
+    ) -> str:
         """Generate cache key for query."""
-        key_data = f"{query}:{mode}"
+        alpha_part = "default" if alpha is None else f"{float(alpha):.4f}"
+        key_data = f"{query}:{mode}:alpha={alpha_part}:limit={limit or 'default'}"
         hash_obj = hashlib.md5(key_data.encode())
         return f"retrieve:{hash_obj.hexdigest()}"
 
@@ -97,7 +111,7 @@ class HybridRetrieverService:
             alpha = getattr(settings, "RRF_ALPHA", 0.7)
         """
         Hybrid retrieval with 3 modes:
-        - mode="hybrid" (alpha=0.7): vector 70% + graph 30%
+        - mode="hybrid" (alpha=settings.RRF_ALPHA): configured vector/graph blend
         - mode="vector_only" (alpha=1.0): pure vector similarity
         - mode="graph_only" (alpha=0.0): pure graph traversal
         """
@@ -109,7 +123,7 @@ class HybridRetrieverService:
         })
 
         # Check cache
-        cache_key = self._get_cache_key(query, mode)
+        cache_key = self._get_cache_key(query, mode, alpha=alpha, limit=limit)
         if use_cache:
             cached = await self._get_cached_results(cache_key)
             if cached:

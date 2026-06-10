@@ -6,6 +6,7 @@ from typing import List, Dict, Optional
 from app.services.retriever_service import HybridRetrieverService
 from app.core.logger import logger
 from app.core.security import audit_log
+from app.config.settings import settings
 
 router = APIRouter(prefix="/retrieve", tags=["Retriever"])
 
@@ -21,7 +22,7 @@ def get_retriever_service():
 class RetrieveRequest(BaseModel):
     query: str
     limit: int = 15
-    alpha: float = 0.7
+    alpha: Optional[float] = None
     mode: str = "hybrid"  # hybrid, vector_only, graph_only
     use_cache: bool = True
 
@@ -49,7 +50,7 @@ async def hybrid_query(request: RetrieveRequest):
             raise ValueError(f"Invalid mode: {request.mode}")
         
         # Adjust alpha based on mode
-        alpha = request.alpha
+        alpha = request.alpha if request.alpha is not None else settings.RRF_ALPHA
         if request.mode == "vector_only":
             alpha = 1.0
         elif request.mode == "graph_only":

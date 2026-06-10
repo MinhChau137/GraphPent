@@ -14,8 +14,10 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -166,6 +168,96 @@ def _parse_cpe(cpe_str: str) -> dict | None:
     return None
 
 
+def _slug(value: str) -> str:
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9_.\-]+", "_", value)
+    return value.strip("_") or "unknown"
+
+
+def _product_base_id(vendor: str, product: str) -> str:
+    vendor_part = _slug(vendor)
+    product_part = _slug(product)
+    return f"product-{vendor_part}-{product_part}" if vendor_part else f"product-{product_part}"
+
+
+def _product_version_key(item: dict) -> str:
+    parts = [
+        item.get("version", ""),
+        item.get("version_start_incl", ""),
+        item.get("version_start_excl", ""),
+        item.get("version_end_incl", ""),
+        item.get("version_end_excl", ""),
+    ]
+    key = "_".join(_slug(p) for p in parts if p)
+    return key or "all"
+
+
+def _affected_product_nodes(affected: list) -> list:
+    products = []
+    seen = set()
+    for item in affected:
+        vendor = item.get("vendor", "")
+        product = item.get("product", "")
+        if not product:
+            continue
+        base_id = _product_base_id(vendor, product)
+        version_key = _product_version_key(item)
+        node_id = f"{base_id}-{version_key}" if version_key != "all" else base_id
+        if node_id in seen:
+            continue
+        seen.add(node_id)
+
+        version = item.get("version", "")
+        end_incl = item.get("version_end_incl", "")
+        end_excl = item.get("version_end_excl", "")
+        if version:
+            version_label = version
+        elif end_excl:
+            version_label = f"< {end_excl}"
+        elif end_incl:
+            version_label = f"<= {end_incl}"
+        else:
+            version_label = "all affected versions"
+
+        base_name = f"{vendor} {product}".strip() or product
+        products.append({
+            "id": node_id,
+            "name": f"{base_name} {version_label}".strip(),
+            "base_id": base_id,
+            "base_name": base_name,
+            "vendor": vendor,
+            "product_name": product,
+            "version": version,
+            "version_start_incl": item.get("version_start_incl", ""),
+            "version_start_excl": item.get("version_start_excl", ""),
+            "version_end_incl": end_incl,
+            "version_end_excl": end_excl,
+            "criteria": item.get("criteria", ""),
+            "status": "vulnerable",
+        })
+    return products
+
+
+def _extract_references(cve_obj: dict, limit: int = 10) -> list:
+    refs = []
+    seen = set()
+    for ref in cve_obj.get("references", [])[:limit]:
+        url = (ref.get("url") or "").strip()
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        tags = ref.get("tags") or []
+        digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
+        refs.append({
+            "id": f"ref-{digest}",
+            "name": url[:120],
+            "reference_url": url,
+            "source_type": ",".join(tags[:5]) if tags else "external",
+            "tags": tags[:10],
+        })
+    return refs
+
+
 def _extract_cwes(weaknesses: list) -> list[str]:
     """Lấy danh sách CWE IDs từ weaknesses array."""
     cwe_ids = []
@@ -219,6 +311,12 @@ def parse_nvd_file(filepath: Path, limit: Optional[int] = None) -> list[dict]:
         cpe_affected   = _extract_cpe_affected(cve_obj.get("configurations", []))
         desc           = _get_en_description(cve_obj.get("descriptions", []))
         pub            = (cve_obj.get("published") or "")[:10]
+        refs           = _extract_references(cve_obj)
+        patch_available = any(
+            set((ref.get("source_type") or "").split(",")) & {"Patch", "Vendor Advisory", "Release Notes"}
+            for ref in refs
+        )
+        patch_date = (cve_obj.get("lastModified") or "")[:10] if patch_available else ""
 
         if not cvss:
             skipped_no_cvss += 1
@@ -229,6 +327,8 @@ def parse_nvd_file(filepath: Path, limit: Optional[int] = None) -> list[dict]:
             "cve_id":        cve_id,
             "description":   desc[:1000],
             "published_date": pub,
+            "patch_available": patch_available,
+            "patch_date":     patch_date,
             "cvss_version":  cvss["cvss_version"],
             "cvss_score":    cvss["cvss_score"],
             "cvss_severity": cvss["cvss_severity"],
@@ -239,6 +339,8 @@ def parse_nvd_file(filepath: Path, limit: Optional[int] = None) -> list[dict]:
             "cpe_vendors":   list({c["vendor"]  for c in cpe_affected if c["vendor"]}),
             "cpe_products":  list({c["product"] for c in cpe_affected if c["product"]}),
             "cpe_affected":  [json.dumps(c, ensure_ascii=False) for c in cpe_affected[:20]],
+            "affected_products": _affected_product_nodes(cpe_affected[:20]),
+            "references":    refs,
         })
 
     print(f"   Có CVSS: {len(records):,} | Không có CVSS: {skipped_no_cvss:,}")
@@ -260,6 +362,8 @@ def _neo4j_merge_batch(driver, batch: list[dict]) -> dict:
         v.name           = row.cve_id,
         v.description    = row.description,
         v.published_date = row.published_date,
+        v.patch_available = row.patch_available,
+        v.patch_date     = row.patch_date,
         v.cvss_version   = row.cvss_version,
         v.cvss_score     = toFloat(row.cvss_score),
         v.cvss_severity  = row.cvss_severity,
@@ -280,8 +384,86 @@ def _neo4j_merge_batch(driver, batch: list[dict]) -> dict:
     MERGE (v)-[:HAS_WEAKNESS {source: 'nvd', confidence: 0.95}]->(c)
     """
 
+    cypher_products = """
+    UNWIND $rows AS row
+    UNWIND coalesce(row.affected_products, []) AS product
+    MERGE (p:AffectedProduct {id: product.id})
+    SET
+        p.name               = product.name,
+        p.vendor             = product.vendor,
+        p.product_name       = product.product_name,
+        p.version            = product.version,
+        p.version_start_incl = product.version_start_incl,
+        p.version_start_excl = product.version_start_excl,
+        p.version_end_incl   = product.version_end_incl,
+        p.version_end_excl   = product.version_end_excl,
+        p.criteria           = product.criteria,
+        p.status             = product.status,
+        p.updated_at         = datetime()
+    MERGE (v:Vulnerability {id: row.id})
+    MERGE (v)-[impact:IMPACTS]->(p)
+    SET impact.source = 'nvd',
+        impact.confidence = 0.95,
+        impact.updated_at = datetime()
+    WITH p, product
+    WHERE product.base_id IS NOT NULL AND product.base_id <> product.id
+    MERGE (base:AffectedProduct {id: product.base_id})
+    SET base.name = product.base_name,
+        base.vendor = product.vendor,
+        base.product_name = product.product_name,
+        base.status = 'base',
+        base.updated_at = datetime()
+    MERGE (p)-[version_rel:VERSION_OF]->(base)
+    SET version_rel.source = 'nvd',
+        version_rel.confidence = 0.90,
+        version_rel.updated_at = datetime()
+    """
+
+    cypher_mitigations = """
+    UNWIND $rows AS row
+    WITH row
+    WHERE row.patch_available = true
+    MERGE (m:Mitigation {id: 'mitigation-' + row.id})
+    SET
+        m.name          = 'Patch or upgrade for ' + row.cve_id,
+        m.description   = CASE
+            WHEN row.patch_date IS NULL OR row.patch_date = ''
+            THEN 'Apply vendor patch or upgrade for ' + row.cve_id
+            ELSE 'Apply vendor patch or upgrade for ' + row.cve_id + ' confirmed on ' + row.patch_date
+        END,
+        m.patch_date    = row.patch_date,
+        m.effectiveness = 'high',
+        m.updated_at    = datetime()
+    MERGE (v:Vulnerability {id: row.id})
+    MERGE (v)-[r:RESOLVED_BY]->(m)
+    SET r.source = 'nvd',
+        r.confidence = 0.85,
+        r.updated_at = datetime()
+    """
+
+    cypher_references = """
+    UNWIND $rows AS row
+    UNWIND coalesce(row.references, []) AS ref
+    MERGE (rnode:Reference {id: ref.id})
+    SET
+        rnode.name          = ref.name,
+        rnode.reference_url = ref.reference_url,
+        rnode.source_type   = ref.source_type,
+        rnode.tags          = ref.tags,
+        rnode.updated_at    = datetime()
+    MERGE (v:Vulnerability {id: row.id})
+    MERGE (v)-[r:RELATED_TO]->(rnode)
+    SET r.source = 'nvd',
+        r.confidence = 0.75,
+        r.relation_reason = 'external_reference',
+        r.updated_at = datetime()
+    """
+
     with driver.session() as session:
         session.run(cypher_vuln, rows=batch)
+        session.run(cypher_products, rows=batch)
+        session.run(cypher_mitigations, rows=batch)
+        session.run(cypher_references, rows=batch)
 
         # Chỉ chạy CWE merge cho rows có cwe_ids
         cwe_rows = [r for r in batch if r["cwe_ids"]]
@@ -325,6 +507,9 @@ def run_ingest(records: list[dict], batch_size: int, dry_run: bool):
     with driver.session() as s:
         s.run("CREATE INDEX vuln_id IF NOT EXISTS FOR (v:Vulnerability) ON (v.id)")
         s.run("CREATE INDEX cwe_id  IF NOT EXISTS FOR (c:CWE)           ON (c.id)")
+        s.run("CREATE INDEX affected_product_id IF NOT EXISTS FOR (p:AffectedProduct) ON (p.id)")
+        s.run("CREATE INDEX mitigation_id IF NOT EXISTS FOR (m:Mitigation) ON (m.id)")
+        s.run("CREATE INDEX reference_id IF NOT EXISTS FOR (r:Reference) ON (r.id)")
 
     print(f"[RUN] Dang MERGE {total:,} CVE vao Neo4j (batch={batch_size})...\n")
 

@@ -6,6 +6,7 @@ from typing import List, Dict, Optional
 from app.config.settings import settings
 from app.core.logger import logger
 from app.domain.schemas.extraction import Entity, Relation
+from app.domain.graph_schema import EXPECTED_NODE_LABELS, EXPECTED_RELATIONSHIP_TYPES
 
 # Module-level shared driver — created once, reused by all Neo4jAdapter instances.
 _shared_driver: Optional[AsyncDriver] = None
@@ -50,6 +51,9 @@ class Neo4jAdapter:
         # 1. Entities (hỗ trợ mọi label động)
         for entity in entities:
             label = entity.type
+            if label not in EXPECTED_NODE_LABELS:
+                logger.warning("Skipping entity with non-ontology label", label=label, entity_id=entity.id)
+                continue
             props = {
                 "id": entity.id,
                 "name": entity.name,
@@ -87,6 +91,14 @@ class Neo4jAdapter:
 
             # Normalize relation type to UPPERCASE (PRIORITY 3 FIX)
             rel_type_normalized = rel.type.upper()
+            if rel_type_normalized not in EXPECTED_RELATIONSHIP_TYPES:
+                logger.warning(
+                    "Skipping non-ontology relationship",
+                    rel_type=rel.type,
+                    source_id=rel.source_id,
+                    target_id=rel.target_id,
+                )
+                continue
 
             cypher = f"""
             MATCH (source) WHERE source.id = $source_id
